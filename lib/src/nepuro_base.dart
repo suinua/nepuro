@@ -49,9 +49,10 @@ class Nepuro {
     }
   }
 
-  server() async {
-    print("start..");
-    HttpServer.bind("127.0.0.1", 8080).then((server) {
+  server(String ip,int port) async {
+    print("start");
+    print("http://${ip}:${port}");
+    HttpServer.bind(ip, port).then((server) {
       server.listen((HttpRequest request) async {
         HttpResponse response = request.response;
 
