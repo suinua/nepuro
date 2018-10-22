@@ -1,30 +1,33 @@
-import 'dart:mirrors';
-
-import 'package:nepuro/src/http/model/Operation.dart';
-
-
 class Route {
-  String path;
-  String method;
-  MethodMirror responseFunc;
-  
-  Route(this.path,this.method,this.responseFunc);
-}
+  final String path;
+  final String method;
+  final String variablePath;
+  final Map<String, Type> body;
 
+  const Route.get(this.path, {this.variablePath})
+      : this.method = "GET",
+        this.body = null;
 
-//参考
-//https://stackoverflow.com/questions/22740496/in-dart-can-you-retrieve-metadata-e-g-annotations-at-runtime-using-reflecti
-List getRoutes() {
-  List res = new List();
-  MirrorSystem ms = currentMirrorSystem();
-  ms.libraries.forEach((u, lm) {
-    lm.declarations.forEach((s, dm) {
-      dm.metadata.forEach((im) {
-        if ((im.reflectee is Operation)) {
-          res.add(Route(im.reflectee.path, im.reflectee.method,dm));
+  const Route.post(this.path, {this.variablePath, this.body})
+      : this.method = "POST";
+
+  const Route.put(this.path, {this.variablePath, this.body})
+      : this.method = "PUT";
+
+  const Route.delete(this.path, {this.variablePath})
+      : this.method = "DELETE",
+        this.body = null;
+
+  bool isBodyCorrect(Map requestBody) {
+    bool result = true;
+    if (requestBody.length >= this.body.length) {
+      this.body.forEach((name, type) {
+        if (!(requestBody.containsKey(name) &&
+            requestBody[name].runtimeType == type)) {
+          result = false;
         }
       });
-    });
-  });
-  return res;
+    }
+    return result;
+  }
 }
