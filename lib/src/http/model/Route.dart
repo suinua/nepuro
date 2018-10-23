@@ -18,7 +18,7 @@ class Route {
       : this.method = "DELETE",
         this.body = null;
 
-  bool isBodyCorrect(Map requestBody) {
+  bool isCorrectBody(Map requestBody) {
     bool result = true;
     if (requestBody.length >= this.body.length) {
       this.body.forEach((name, type) {
