@@ -93,11 +93,13 @@ class Nepuro {
   List _getHitRoute(HttpRequest request, List<Map> routeList) {
     var hitRoute = routeList
         .where((r) =>
-            r["data"].path == request.uri.path &&
+              r["data"].variablePath == null &&
+                r["data"].path == request.uri.path &&
                 request.method == r["data"].method ||
             RegExp("\^${r["data"].path}/.((?!/).)*\$")
                     .hasMatch(request.uri.path) &&
-                r["data"].variablePath != null)
+                r["data"].variablePath != null &&
+                request.method == r["data"].method)
         .toList();
     return hitRoute;
   }
