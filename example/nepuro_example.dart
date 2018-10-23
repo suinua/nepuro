@@ -5,8 +5,10 @@ welcome(Request request) => Response('welcome to hoge', 200)..text();
 
 @Route.post("/Hello", variablePath: "id", body: {"name": String, "age": int})
 hello(Request request) {
-  print(request.variablePath);
-  print(request.body);
+  var id = request.variablePath;
+  var body = request.body;
+  print(id);
+  print(body);
 
   return Response('Hello hoge!!', 200)..text();
 }
