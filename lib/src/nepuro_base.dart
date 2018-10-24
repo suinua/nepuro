@@ -17,8 +17,7 @@ class Nepuro {
         HttpResponse response = request.response;
 
         //@Routeのつく関数をすべて取得しpath,methodが一致する関数のみ取得
-        final _RouteData route =
-            await _getMatchRoute(request, _getRouteList());
+        final _RouteData route = await _getMatchRoute(request, _getRouteList());
 
         //routeが空かNullなら　404を返す
         if (route == null) {
@@ -40,18 +39,30 @@ class Nepuro {
           //ライブラリの利用者がbodyデータを要求していたら
           if (route.metadata.body != null) {
             await _getBody(request).then((body) {
-              //リクエストのbodyが正しいか
-              bool isReqBodyCorrect = route.metadata.isCorrectBody(body);
+              //要求しているタイプ(route.metadata.body)にbodyを変換
+              ClassMirror bodyType = reflectType(route.metadata.body);
+              List<String> fieldNemeList = _getFieldNameList(bodyType);
+              List arguments =
+                  _sortFromList(fieldNemeList, body).values.toList();
+              returnReqData.body = bodyType
+                  .newInstance(bodyType.owner.simpleName, arguments)
+                  .reflectee;
 
-              //正しければbodyを代入
-              if (isReqBodyCorrect) {
-                returnReqData.body = body;
+              //requestのbodyが正しいか
+              bool isBodyCorrect = route.metadata.validateBody(body);
+              //mapのvalueが一つでもnullが含まれているかどうか
+              var hasNullMapValue =
+                  (Map map) => map.values.toList().contains(null);
+              //ライブラリの利用者がNecessaryFieldを設定しているかどうか
+              bool isEmptyNecessaryField =
+                  route.metadata.necessaryField == null;
 
-                //正しくなければ404エラーを返す
-              } else {
+              if (isEmptyNecessaryField &&
+                      hasNullMapValue(returnReqData.body.asMap()) ||
+                  !isBodyCorrect && !isEmptyNecessaryField) {
+                    
                 response.headers.set("Content-Type", "text/plain");
                 response.statusCode = 400;
-                response.write("");
                 response.close();
 
                 print("status: 400");
@@ -120,6 +131,29 @@ class Nepuro {
         return content;
     }
   }
+}
+
+List<String> _getFieldNameList(ClassMirror type) {
+  List<String> fieldNameList = new List();
+
+  type.declarations.forEach((key, value) {
+    if (value is VariableMirror) {
+      fieldNameList.add(value
+          .toString()
+          .replaceAll("VariableMirror on ", "")
+          .replaceAll("\'", ""));
+    }
+  });
+
+  return fieldNameList;
+}
+
+Map _sortFromList(List keyList, Map map) {
+  Map result = new Map();
+  for (String key in keyList) {
+    result[key] = map[key];
+  }
+  return result;
 }
 
 class _RouteData {

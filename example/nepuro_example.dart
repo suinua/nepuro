@@ -1,5 +1,16 @@
 import 'package:nepuro/nepuro.dart';
 
+class User {
+  String name;
+  int age;
+  User(this.name,this.age);
+
+  Map asMap() => {
+    "name":this.name,
+    "age":this.age
+  };
+}
+
 //GET: http://localhost:8080/User
 // >> get user
 @Route.get("/User")
@@ -17,10 +28,10 @@ findUser(Request request) {
 
 //POST: http://localhost:8080/User
 // >> add user userData:{name: name, age: 1}
-@Route.post("/User", body:{"name":String,"age":int})
+@Route.post("/User", body:User, necessaryField:{"name":String,"age":int})
 addUser(Request request) {
-  var userData = request.body;
-  return Response("add user userData:${userData}", 200)..text();
+  User userData = request.body;
+  return Response("add user userData:${userData.asMap()}", 200)..text();
 }
 
 //DELETE: http://localhost:8080/User
