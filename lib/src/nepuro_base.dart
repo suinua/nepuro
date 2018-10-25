@@ -60,7 +60,6 @@ class Nepuro {
               if (isEmptyNecessaryField &&
                       hasNullMapValue(returnReqData.body.asMap()) ||
                   !isBodyCorrect && !isEmptyNecessaryField) {
-                    
                 response.headers.set("Content-Type", "text/plain");
                 response.statusCode = 400;
                 response.close();
@@ -105,16 +104,31 @@ class Nepuro {
   }
 
   _RouteData _getMatchRoute(HttpRequest request, List<_RouteData> routeList) {
-    var matchRoute = routeList
-        .where((r) =>
-            r.metadata.variablePath == null &&
-                r.metadata.path == request.uri.path &&
-                request.method == r.metadata.method ||
-            RegExp("\^${r.metadata.path}/.((?!/).)*\$")
-                    .hasMatch(request.uri.path) &&
-                r.metadata.variablePath != null &&
-                request.method == r.metadata.method)
-        .toList();
+    var isVarEmpty = (variable) => variable == null;
+    var isVarNotEmpty = (variable) => variable != null;
+
+    _isMatchRoute(route) {
+      //methodが一致していれば
+      if (request.method == route.metadata.method) {
+
+        //variablePathが無い && パスが完全一致する
+        if (isVarEmpty(route.metadata.variablePath) &&
+            route.metadata.path == request.uri.path) {
+          return true;
+        }
+
+        //variablePathがあり &&　正規表現と一致する
+        if (RegExp("\^${route.metadata.path}/.((?!/).)*\$")
+                .hasMatch(request.uri.path) &&
+            isVarNotEmpty(route.metadata.variablePath)) {
+          return true;
+        }
+      }
+
+      return false;
+    }
+
+    var matchRoute = routeList.where((route) => _isMatchRoute(route)).toList();
     return matchRoute.isEmpty ? null : matchRoute.first;
   }
 
