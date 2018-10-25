@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 class Response {
   dynamic body;
   int status;
@@ -7,6 +9,7 @@ class Response {
     this.contentType = "text/plain";
   }
   json(){
+    this.body = jsonEncode(this.body); 
     this.contentType = "application/json";
   }
 
