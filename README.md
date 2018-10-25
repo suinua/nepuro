@@ -25,7 +25,7 @@ import 'package:nepuro/nepuro.dart';
 //GET: http://localhost:8080/Hello
 // >> Hello World
 @Route.get("/Hello")
-getUser(Request request) {
+hello(Request request) {
   return Response("Hello World", 200)..text();
 }
 
@@ -58,7 +58,7 @@ import 'package:nepuro/nepuro.dart';
 //GET: http://localhost:8080/Hello
 // >> Hello World
 @Route.get("/Hello")
-getUser(Request request) {
+hello(Request request) {
   return Response("Hello World", 200)..text();
 }
 
