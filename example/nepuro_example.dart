@@ -3,43 +3,42 @@ import 'package:nepuro/nepuro.dart';
 class User {
   String name;
   int age;
-  User(this.name,this.age);
+  User(this.name, this.age);
 
-  Map asMap() => {
-    "name":this.name,
-    "age":this.age
-  };
+  Map asMap() => {"name": this.name, "age": this.age};
 }
 
+List userList = new List();
+
 //GET: http://localhost:8080/User
-// >> get user
 @Route.get("/User")
 getUser(Request request) {
-  return Response("get user", 200)..text();
+  return Response(userList, 200)..json();
 }
 
 //GET: http://localhost:8080/User/suinua
-// >> find user, userName:suinua
 @Route.get("/User", variablePath: "userName")
 findUser(Request request) {
   var userName = request.variablePath;
-  return Response("find user, userName:${userName}", 200)..text();
+  return Response(
+      userList.where((user) => user["name"] == userName).toList(), 200)
+    ..json();
 }
 
 //POST: http://localhost:8080/User
-// >> add user userData:{name: name, age: 1}
-@Route.post("/User", body:User, necessaryField:{"name":String,"age":int})
+@Route.post("/User", body: User, necessaryField: {"name": String, "age": int})
 addUser(Request request) {
   User userData = request.body;
-  return Response("add user userData:${userData.asMap()}", 200)..text();
+  userList.add(userData.asMap());
+  return Response(userList, 200)..json();
 }
 
 //DELETE: http://localhost:8080/User
-// >> delet user userName:suinua
 @Route.delete("/User", variablePath: "userName")
 deleteUser(Request request) {
   var userName = request.variablePath;
-  return Response("delet user userName:${userName}", 200)..text();
+  userList.removeWhere((user) => user["name"] == userName);
+  return Response(userList, 200)..json();
 }
 
 main() {
