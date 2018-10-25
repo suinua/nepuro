@@ -2,7 +2,7 @@ class Route {
   final String path;
   final String method;
   final String variablePath;
-  final dynamic body;
+  final Type body;
   final Map<String, Type> necessaryField;
 
   const Route.get(this.path, {this.variablePath})
