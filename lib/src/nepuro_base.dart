@@ -2,10 +2,10 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:mirrors';
 
-import 'package:nepuro/src/http/arrayOperation.dart';
-import 'package:nepuro/src/http/metadataOperation.dart';
+import 'package:nepuro/src/http/arrayManager.dart';
+import 'package:nepuro/src/http/classManager.dart';
 import 'package:nepuro/src/http/model/Request.dart';
-import 'package:nepuro/src/http/model/RouteData.dart';
+import 'package:nepuro/src/http/model/RouteFunc.dart';
 
 class Nepuro {
   server(String ip, int port) async {
@@ -18,11 +18,13 @@ class Nepuro {
 
         HttpResponse response = request.response;
 
-        //@Routeのつく関数をすべて取得しpath,methodが一致する関数のみ取得
-        final RouteData route = await getMatchRoute(request, getRouteList());
+        //@Routeのつく関数、メタデータをすべて取得
+        final List<RouteFunc> routeDataList = RouteFuncData().getAll();
+        //routeListのなかからpath,methodが一致する関数のみ取得
+        final RouteFunc routeData = await RouteFuncData().getMatch(request, routeDataList);
 
         //routeが空かNullなら　404を返す
-        if (route == null) {
+        if (routeData == null) {
           response.headers.set("Content-Type", "text/plain");
           response.statusCode = 404;
           response.write("NOT FOUND");
@@ -34,16 +36,16 @@ class Nepuro {
           Request returnReqData = Request(request, null, null);
 
           //ライブラリの利用者がvariablePathデータを要求していたら
-          if (route.metadata.variablePath != null) {
+          if (routeData.metadata.variablePath != null) {
             returnReqData.variablePath = request.uri.pathSegments.last;
           }
 
           //ライブラリの利用者がbodyデータを要求していたら
-          if (route.metadata.body != null) {
+          if (routeData.metadata.body != null) {
             await _getBody(request).then((body) {
               //要求しているタイプ(route.metadata.body)にbodyを変換
-              ClassMirror bodyType = reflectType(route.metadata.body);
-              List<String> fieldNemeList = getFieldNameList(bodyType);
+              ClassMirror bodyType = reflectType(routeData.metadata.body);
+              List<String> fieldNemeList = getFieldNames(bodyType);
               List arguments =
                   sortFromList(fieldNemeList, body).values.toList();
               returnReqData.body = bodyType
@@ -51,13 +53,13 @@ class Nepuro {
                   .reflectee;
 
               //requestのbodyが正しいか
-              bool isBodyCorrect = route.metadata.validateBody(body);
+              bool isBodyCorrect = routeData.metadata.validateBody(body);
               //mapのvalueが一つでもnullが含まれているかどうか
               var hasNullMapValue =
                   (Map map) => map.values.toList().contains(null);
               //ライブラリの利用者がNecessaryFieldを設定しているかどうか
               bool isEmptyNecessaryField =
-                  route.metadata.necessaryField == null;
+                  routeData.metadata.necessaryField == null;
 
               if (isEmptyNecessaryField &&
                       hasNullMapValue(returnReqData.body.asMap()) ||
@@ -71,15 +73,15 @@ class Nepuro {
             });
           }
 
-          //responseFunc = @Routeがついていてpath,methodが一致する関数
-          LibraryMirror owner = route.response.owner;
-          var responseFunc =
-              owner.invoke(route.response.simpleName, [returnReqData]);
+          //routeFunc = @Routeがついていてpath,methodが一致する関数
+          LibraryMirror owner = routeData.function.owner;
+          var routeFunc =
+              owner.invoke(routeData.function.simpleName, [returnReqData]);
 
-          //すでにresponseが設定されていなければ
-          if (response.statusCode != 400) {
+          //すでにresponseが設定されていなければ(デフォルト値なら)
+          if (response.statusCode == 200) {
             //responseを返す
-            responseFunc.reflectee.send(response);
+            routeFunc.reflectee.send(response);
             print("status: ${response.statusCode}");
           }
         }
