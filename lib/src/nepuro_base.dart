@@ -49,26 +49,26 @@ class Nepuro {
               body = requestBody;
             });
 
-            //要求しているタイプ(route.metadata.body)にbodyを変換
-            ClassMirror bodyType = reflectType(routeFunc.metadata.body);
-            List<String> fieldNemeList = getFieldNames(bodyType);
-            List arguments = sortFromList(fieldNemeList, body).values.toList();
-            returnReqData.body = bodyType
-                .newInstance(bodyType.owner.simpleName, arguments)
-                .reflectee;
+            returnReqData.body = routeFunc.toBodyType(body);
 
-            //requestのbodyが正しいか
-            bool isBodyCorrect = routeFunc.metadata.validateBody(body);
-            //mapのvalueが一つでもnullが含まれているかどうか
-            var hasNullMapValue =
-                (Map map) => map.values.toList().contains(null);
-            //ライブラリの利用者がNecessaryFieldを設定しているかどうか
-            bool isEmptyNecessaryField =
-                routeFunc.metadata.necessaryField == null;
+            isBadRequest() {
+              //requestのbodyが正しいか
+              bool isBodyCorrect = routeFunc.metadata.validateBody(body);
 
-            if (isEmptyNecessaryField &&
-                    hasNullMapValue(returnReqData.body.asMap()) ||
-                !isBodyCorrect && !isEmptyNecessaryField) {
+              //mapのvalueが一つでもnullが含まれているかどうか
+              var hasNullMapValue =
+                  (Map map) => map.values.toList().contains(null);
+
+              //ライブラリの利用者がNecessaryFieldを設定しているかどうか
+              bool isEmptyNecessaryField =
+                  routeFunc.metadata.necessaryField == null;
+
+              return isEmptyNecessaryField &&
+                      hasNullMapValue(returnReqData.body.asMap()) ||
+                  !isBodyCorrect && !isEmptyNecessaryField;
+            }
+
+            if (isBadRequest()) {
               response.headers.set("Content-Type", "text/plain");
               response.statusCode = 400;
               response.close();
@@ -77,13 +77,13 @@ class Nepuro {
             }
           }
 
-          //routeFuncInvoke = @Routeがついていてpath,methodが一致する関数
-          LibraryMirror owner = routeFunc.function.owner;
-          var routeFuncInvoke =
-              owner.invoke(routeFunc.function.simpleName, [returnReqData]);
-
           //すでにresponseが設定されていなければ(デフォルト値なら)
           if (response.statusCode == 200) {
+            //routeFuncInvoke = @Routeがついていてpath,methodが一致する関数
+            LibraryMirror owner = routeFunc.function.owner;
+            var routeFuncInvoke =
+                owner.invoke(routeFunc.function.simpleName, [returnReqData]);
+
             //responseを返す
             routeFuncInvoke.reflectee.send(response);
             print("status: ${response.statusCode}");

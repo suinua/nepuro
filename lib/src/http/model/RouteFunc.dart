@@ -1,13 +1,24 @@
 import 'dart:mirrors';
 import 'dart:io';
 
+import 'package:nepuro/src/http/arrayManager.dart';
+import 'package:nepuro/src/http/classManager.dart';
 import 'package:nepuro/src/http/model/AnnotatedFunc.dart';
 import 'package:nepuro/src/http/model/Route.dart';
+
 class RouteFunc {
   Route metadata;
   MethodMirror function;
 
   RouteFunc(this.metadata, this.function);
+
+  toBodyType(Map body) {
+    ClassMirror bodyType = reflectType(this.metadata.body);
+    List<String> fieldNemeList = getFieldNames(bodyType);
+    List arguments = sortFromList(fieldNemeList, body).values.toList();
+
+    return bodyType.newInstance(bodyType.owner.simpleName, arguments).reflectee;
+  }
 }
 
 class RouteFuncData {
