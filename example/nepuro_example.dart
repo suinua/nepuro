@@ -26,10 +26,25 @@ findUser(Request request) {
 }
 
 //POST: http://localhost:8080/User
-@Route.post("/User", body: User, necessaryField: {"name": String, "age": int})
+@Route.post("/User", body: User)
 addUser(Request request) {
   User userData = request.body;
   userList.add(userData.asMap());
+  return Response(userList, 200)..json();
+}
+
+//POT: http://localhost:8080/User
+@Route.put("/User", body: User, necessaryField: {"name": String})
+updateUser(Request request) {
+  User userData = request.body;
+
+  for (var user in userList) {
+    if (user["name"] == userData.name) {
+      user["name"] = userData.name ?? user["name"];
+      user["age"] = userData.age ?? user["age"];
+    }
+  }
+
   return Response(userList, 200)..json();
 }
 
