@@ -8,20 +8,26 @@ class User {
   Map asMap() => {"name": this.name, "age": this.age};
 }
 
+//GET: http://localhost:8080/User
+@Route.post("/hello",body: "text/plain")
+hrllo(Request request) {
+  return Response.ok(request.body)..text();
+}
+
 List userList = new List();
 
 //GET: http://localhost:8080/User
 @Route.get("/User")
 getUser(Request request) {
-  return Response(userList, 200)..json();
+  return Response.ok(userList)..json();
 }
 
 //GET: http://localhost:8080/User/suinua
 @Route.get("/User", variablePath: "userName")
 findUser(Request request) {
   var userName = request.variablePath;
-  return Response(
-      userList.where((user) => user["name"] == userName).toList(), 200)
+  return Response.ok(
+      userList.where((user) => user["name"] == userName).toList())
     ..json();
 }
 
@@ -30,7 +36,7 @@ findUser(Request request) {
 addUser(Request request) {
   User userData = request.body;
   userList.add(userData.asMap());
-  return Response(userList, 200)..json();
+  return Response.ok(userList)..json();
 }
 
 //POT: http://localhost:8080/User
@@ -45,7 +51,7 @@ updateUser(Request request) {
     }
   }
 
-  return Response(userList, 200)..json();
+  return Response.ok(userList)..json();
 }
 
 //DELETE: http://localhost:8080/User
@@ -53,7 +59,7 @@ updateUser(Request request) {
 deleteUser(Request request) {
   var userName = request.variablePath;
   userList.removeWhere((user) => user["name"] == userName);
-  return Response(userList, 200)..json();
+  return Response.ok(userList)..json();
 }
 
 main() {

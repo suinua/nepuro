@@ -40,33 +40,66 @@ class Nepuro {
           }
 
           //ライブラリの利用者がbodyデータを要求していたら
-          if (routeFunc.metadata.body != null) {
-            Map body;
+          if (routeFunc.metadata.body != null ||
+              routeFunc.metadata.necessaryField != null) {
+            dynamic body;
 
             await _getRequestBody(request).then((requestBody) {
               body = requestBody;
             });
 
-            returnReqData.body = routeFunc.toBodyType(body);
+            //bodyがContentTypeであり、リクエストのContentTypeがjsonでない場合
+            if (routeFunc.metadata.body is String) {
+              //ContentTypeが一致していれば
+              if (request.headers.contentType.toString() == routeFunc.metadata.body) {
+                returnReqData.body = body;
+              } else {
+                response.headers.set("Content-Type", "text/plain");
+                response.statusCode = 400;
+                response.close();
 
-            isBadRequest() {
-              //requestのbodyが正しいか
-              bool isBodyCorrect = routeFunc.metadata.validateBody(body);
+                print("status: 400");
+              }
 
-              //mapのvalueが一つでもnullが含まれているかどうか
-              var hasNullMapValue =
-                  (Map map) => map.values.toList().contains(null);
+              //contentTypeがjsonなら
+            } else if (request.headers.contentType.toString() ==
+                "application/json") {
+              //bodyがnullでなければ
+              //ライブラリ利用者が要求しているタイプにbodyを変換
+              if (routeFunc.metadata.body != null) {
+                returnReqData.body = routeFunc.toBodyType(body);
+              }
 
-              //ライブラリの利用者がNecessaryFieldを設定しているかどうか
-              bool isEmptyNecessaryField =
-                  routeFunc.metadata.necessaryField == null;
+              isBadRequest() {
+                //mapのvalueが一つでもnullが含まれているかどうか
+                var hasNullMapValue =
+                    (Map map) => map.values.toList().contains(null);
 
-              return isEmptyNecessaryField &&
-                      hasNullMapValue(returnReqData.body.asMap()) ||
-                  !isBodyCorrect && !isEmptyNecessaryField;
-            }
+                //ライブラリの利用者がNecessaryFieldを設定しているかどうか
+                bool isEmptyNecessaryField =
+                    routeFunc.metadata.necessaryField == null;
 
-            if (isBadRequest()) {
+                //requestのbodyが正しいか
+                bool isBodyNotCorrect = isEmptyNecessaryField
+                    ? false
+                    : routeFunc.metadata.validateBody(body);
+
+                //NecessaryFieldがNull(bodyのNullは禁止) && bodyにNullが含まれる
+                //Bodyが正しくない
+                return isEmptyNecessaryField &&
+                        hasNullMapValue(returnReqData.body.asMap()) ||
+                    isBodyNotCorrect;
+              }
+
+              if (isBadRequest()) {
+                response.headers.set("Content-Type", "text/plain");
+                response.statusCode = 400;
+                response.close();
+
+                print("status: 400");
+              }
+              //リクエストのContentTypeが適切でない
+            } else {
               response.headers.set("Content-Type", "text/plain");
               response.statusCode = 400;
               response.close();
