@@ -40,8 +40,7 @@ class Nepuro {
           }
 
           //ライブラリの利用者がbodyデータを要求していたら
-          if (routeFunc.metadata.body != null ||
-              routeFunc.metadata.necessaryField != null) {
+          if (routeFunc.metadata.body != null) {
             dynamic body;
 
             await _getRequestBody(request).then((requestBody) {
@@ -51,7 +50,8 @@ class Nepuro {
             //bodyがContentTypeであり、リクエストのContentTypeがjsonでない場合
             if (routeFunc.metadata.body is String) {
               //ContentTypeが一致していれば
-              if (request.headers.contentType.toString() == routeFunc.metadata.body) {
+              if (request.headers.contentType.toString() ==
+                  routeFunc.metadata.body) {
                 returnReqData.body = body;
               } else {
                 response.headers.set("Content-Type", "text/plain");
@@ -68,6 +68,8 @@ class Nepuro {
               //ライブラリ利用者が要求しているタイプにbodyを変換
               if (routeFunc.metadata.body != null) {
                 returnReqData.body = routeFunc.toBodyType(body);
+              } else {
+                returnReqData.body = body;
               }
 
               isBadRequest() {
@@ -100,6 +102,20 @@ class Nepuro {
               }
               //リクエストのContentTypeが適切でない
             } else {
+              response.headers.set("Content-Type", "text/plain");
+              response.statusCode = 400;
+              response.close();
+
+              print("status: 400");
+            }
+          } else if (routeFunc.metadata.body == null &&
+              routeFunc.metadata.necessaryField != null) {
+
+            await _getRequestBody(request).then((requestBody) {
+              returnReqData.body = requestBody;
+            });
+
+            if (!routeFunc.metadata.validateBody(returnReqData.body)) {
               response.headers.set("Content-Type", "text/plain");
               response.statusCode = 400;
               response.close();
