@@ -1,10 +1,8 @@
 import 'dart:io';
 
 class Request {
-  HttpRequest httpRequest;
-
-  dynamic variablePath;
-  dynamic body;
-
-  Request(this.httpRequest,this.variablePath,this.body);
+  final String type;
+  
+  const Request.path():this.type = "path";
+  const Request.body():this.type = "body";
 }

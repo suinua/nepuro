@@ -2,7 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:mirrors';
 
-import 'package:nepuro/src/http/model/Request.dart';
+import 'package:nepuro/src/http/arrayManager.dart';
+import 'package:nepuro/src/http/classManager.dart';
 import 'package:nepuro/src/http/model/RouteFunc.dart';
 
 class Nepuro {
@@ -32,44 +33,43 @@ class Nepuro {
           print("status: 400");
         } else {
           //ライブラリの利用者に返すデータ
-          Request returnReqData = Request(request, null, null);
+          Map<String, dynamic> returnReqData = {
+            "body": null,
+            "path": null
+          };
 
-          //ライブラリの利用者がvariablePathデータを要求していたら
-          if (routeFunc.metadata.variablePath != null) {
-            returnReqData.variablePath = request.uri.pathSegments.last;
+          //ライブラリの利用者がpathデータを要求していたら
+          if (routeFunc.isNeedOfPath()) {
+            returnReqData["path"] = request.uri.pathSegments.last;
           }
 
-          //ライブラリの利用者がbodyデータを要求していたら
-          if (routeFunc.metadata.body != null) {
+          //ライブラリの利用者がnecessaryFieldのみ設定していたら
+          if (routeFunc.isNotNeedOfBody() &&
+              routeFunc.isNeedOfNecessaryField()) {
+            await _getRequestBody(request).then((requestBody) {
+              returnReqData["body"] = requestBody;
+            });
+
+            if (!routeFunc.validateBody(returnReqData["body"])) {
+              response.headers.set("Content-Type", "text/plain");
+              response.statusCode = 400;
+              response.close();
+
+              print("status: 400");
+            }
+            //ライブラリの利用者がbodyデータを要求していたら
+          } else if (routeFunc.isNeedOfBody()) {
             dynamic body;
 
             await _getRequestBody(request).then((requestBody) {
               body = requestBody;
             });
-
-            //bodyがContentTypeであり、リクエストのContentTypeがjsonでない場合
-            if (routeFunc.metadata.body is String) {
-              //ContentTypeが一致していれば
-              if (request.headers.contentType.toString() ==
-                  routeFunc.metadata.body) {
-                returnReqData.body = body;
-              } else {
-                response.headers.set("Content-Type", "text/plain");
-                response.statusCode = 400;
-                response.close();
-
-                print("status: 400");
-              }
-
-              //contentTypeがjsonなら
-            } else if (request.headers.contentType.toString() ==
-                "application/json") {
               //bodyがnullでなければ
               //ライブラリ利用者が要求しているタイプにbodyを変換
-              if (routeFunc.metadata.body != null) {
-                returnReqData.body = routeFunc.toBodyType(body);
+              if (routeFunc.isNeedOfBody()) {
+                returnReqData["body"] = routeFunc.toBodyType(body);
               } else {
-                returnReqData.body = body;
+                returnReqData["body"] = body;
               }
 
               isBadRequest() {
@@ -77,20 +77,19 @@ class Nepuro {
                 var hasNullMapValue =
                     (Map map) => map.values.toList().contains(null);
 
-                //ライブラリの利用者がNecessaryFieldを設定しているかどうか
-                bool isEmptyNecessaryField =
-                    routeFunc.metadata.necessaryField == null;
-
-                //requestのbodyが正しいか
-                bool isBodyNotCorrect = isEmptyNecessaryField
+                //NecessaryFieldが空で無い
+                //リクエストのbodyが正しくない
+                bool isBodyNotCorrect = routeFunc.isNotNeedOfNecessaryField()
                     ? false
-                    : routeFunc.metadata.validateBody(body);
+                    : !routeFunc.validateBody(body);
+              print(routeFunc.validateBody(body));
 
                 //NecessaryFieldがNull(bodyのNullは禁止) && bodyにNullが含まれる
                 //Bodyが正しくない
-                return isEmptyNecessaryField &&
-                        hasNullMapValue(returnReqData.body.asMap()) ||
+                return routeFunc.isNotNeedOfNecessaryField() &&
+                        hasNullMapValue(returnReqData["body"].asMap()) ||
                     isBodyNotCorrect;
+              
               }
 
               if (isBadRequest()) {
@@ -100,36 +99,14 @@ class Nepuro {
 
                 print("status: 400");
               }
-              //リクエストのContentTypeが適切でない
-            } else {
-              response.headers.set("Content-Type", "text/plain");
-              response.statusCode = 400;
-              response.close();
-
-              print("status: 400");
             }
-          } else if (routeFunc.metadata.body == null &&
-              routeFunc.metadata.necessaryField != null) {
-
-            await _getRequestBody(request).then((requestBody) {
-              returnReqData.body = requestBody;
-            });
-
-            if (!routeFunc.metadata.validateBody(returnReqData.body)) {
-              response.headers.set("Content-Type", "text/plain");
-              response.statusCode = 400;
-              response.close();
-
-              print("status: 400");
-            }
-          }
 
           //すでにresponseが設定されていなければ(デフォルト値なら)
           if (response.statusCode == 200) {
             //routeFuncInvoke = @Routeがついていてpath,methodが一致する関数
-            LibraryMirror owner = routeFunc.function.owner;
+            LibraryMirror owner = routeFunc.method.owner;
             var routeFuncInvoke =
-                owner.invoke(routeFunc.function.simpleName, [returnReqData]);
+                owner.invoke(routeFunc.method.simpleName, requDataToFuncField(getMethodFieldNames(routeFunc.method), returnReqData));
 
             //responseを返す
             routeFuncInvoke.reflectee.send(response);

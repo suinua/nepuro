@@ -8,60 +8,26 @@ class User {
   Map asMap() => {"name": this.name, "age": this.age};
 }
 
-//GET: http://localhost:8080/User
-@Route.post("/hello",body: "text/plain")
-hrllo(Request request) {
-  return Response.ok(request.body)..text();
-}
+List<Map> userList = new List();
 
-List userList = new List();
-
-//GET: http://localhost:8080/User
 @Route.get("/User")
-getUser(Request request) {
+getAllUser() {
   return Response.ok(userList)..json();
 }
 
-//GET: http://localhost:8080/User/suinua
-@Route.get("/User", variablePath: "userName")
-findUser(Request request) {
-  var userName = request.variablePath;
-  return Response.ok(
-      userList.where((user) => user["name"] == userName).toList())
-    ..json();
+@Route.get("/User")
+getUser(@Request.path() String name) {
+  return Response.ok(userList.where((user) => user["name"] == name).toList())..json();
 }
 
 //POST: http://localhost:8080/User
-@Route.post("/User", body: User)
-addUser(Request request) {
-  User userData = request.body;
-  userList.add(userData.asMap());
+@Route.post("/User")
+@NecessaryField({"name": String})
+addUser(@Request.body() User user) {
+  userList.add(user.asMap());
   return Response.ok(userList)..json();
 }
 
-//POT: http://localhost:8080/User
-@Route.put("/User", body: User, necessaryField: {"name": String})
-updateUser(Request request) {
-  User userData = request.body;
-
-  for (var user in userList) {
-    if (user["name"] == userData.name) {
-      user["name"] = userData.name ?? user["name"];
-      user["age"] = userData.age ?? user["age"];
-    }
-  }
-
-  return Response.ok(userList)..json();
-}
-
-//DELETE: http://localhost:8080/User
-@Route.delete("/User", variablePath: "userName")
-deleteUser(Request request) {
-  var userName = request.variablePath;
-  userList.removeWhere((user) => user["name"] == userName);
-  return Response.ok(userList)..json();
-}
-
-main() {
+main(List<String> args) {
   Nepuro().server("127.0.0.1", 8080);
 }

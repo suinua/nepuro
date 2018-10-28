@@ -2,9 +2,9 @@ import 'dart:mirrors';
 
 class AnnotatedFunc {
   dynamic metadata;
-  MethodMirror function;
+  MethodMirror method;
 
-  AnnotatedFunc(this.metadata, this.function);
+  AnnotatedFunc(this.metadata, this.method);
 }
 
 //クラスを作る必要があるのかわからないけど。。
@@ -17,11 +17,11 @@ class AnnotatedFuncData {
 
     MirrorSystem ms = currentMirrorSystem();
     ms.libraries.forEach((u, lm) {
-      lm.declarations.forEach((s, function) {
-        function.metadata.forEach((metadata) {
+      lm.declarations.forEach((s, method) {
+        method.metadata.forEach((metadata) {
           if (metadata.type == annotationType) {
             AnnotatedFunc annotationData =
-                AnnotatedFunc(metadata.reflectee, function);
+                AnnotatedFunc(metadata.reflectee, method);
             annotationDataList.add(annotationData);
           }
         });

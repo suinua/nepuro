@@ -13,3 +13,15 @@ Map sortFromList(List keyList, Map map) {
   }
   return result;
 }
+
+List requDataToFuncField(List<Map> fieldList, Map returnReqData){
+  List result = new List();
+  for (Map field in fieldList) {
+    if (field["isRequest"]) {
+      result.add(field["requestType"] == "body" ? returnReqData["body"] : returnReqData["path"]);
+    } else {
+      result.add(null);
+    }
+  }
+  return result;
+}
