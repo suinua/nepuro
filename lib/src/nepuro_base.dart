@@ -4,6 +4,7 @@ import 'dart:mirrors';
 
 import 'package:nepuro/src/http/arrayManager.dart';
 import 'package:nepuro/src/http/classManager.dart';
+import 'package:nepuro/src/http/model/RequestBodyType.dart';
 import 'package:nepuro/src/http/model/RouteFunc.dart';
 
 class Nepuro {
@@ -30,7 +31,7 @@ class Nepuro {
           response.write("NOT FOUND");
           response.close();
 
-          print("status: 400");
+          print("status: 404");
         } else {
           //ライブラリの利用者に返すデータ
           Map<String, dynamic> returnReqData = {
@@ -43,30 +44,17 @@ class Nepuro {
             returnReqData["path"] = request.uri.pathSegments.last;
           }
 
-          //ライブラリの利用者がnecessaryFieldのみ設定していたら
-          if (routeFunc.isNotNeedOfBody() &&
-              routeFunc.isNeedOfNecessaryField()) {
-            await _getRequestBody(request).then((requestBody) {
-              returnReqData["body"] = requestBody;
-            });
-
-            if (!routeFunc.validateBody(returnReqData["body"])) {
-              response.headers.set("Content-Type", "text/plain");
-              response.statusCode = 400;
-              response.close();
-
-              print("status: 400");
-            }
-            //ライブラリの利用者がbodyデータを要求していたら
-          } else if (routeFunc.isNeedOfBody()) {
+          if (routeFunc.isNeedOfBody()) {
             dynamic body;
 
             await _getRequestBody(request).then((requestBody) {
               body = requestBody;
             });
-              //bodyがnullでなければ
+              //ライブラリ利用者がbodyを要求していて
+              //ライブラリ利用者がbodyに設定しているクラスがRequestBodyTypeを実装していたら
               //ライブラリ利用者が要求しているタイプにbodyを変換
-              if (routeFunc.isNeedOfBody()) {
+              bool isRequestBodyType = routeFunc.getBodyType().superinterfaces.contains(reflectClass(RequestBodyType));
+              if (routeFunc.isNeedOfBody() && isRequestBodyType) {
                 returnReqData["body"] = routeFunc.toBodyType(body);
               } else {
                 returnReqData["body"] = body;
@@ -82,7 +70,6 @@ class Nepuro {
                 bool isBodyNotCorrect = routeFunc.isNotNeedOfNecessaryField()
                     ? false
                     : !routeFunc.validateBody(body);
-              print(routeFunc.validateBody(body));
 
                 //NecessaryFieldがNull(bodyのNullは禁止) && bodyにNullが含まれる
                 //Bodyが正しくない

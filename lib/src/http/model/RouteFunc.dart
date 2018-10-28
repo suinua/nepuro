@@ -22,10 +22,7 @@ class RouteFunc {
   }
 
   dynamic toBodyType(Map body) {
-    List<ParameterMirror> parameterList = getBodyTypeList();
-    ParameterMirror bodyTypeParameter = parameterList.first;
-
-    ClassMirror bodyType = bodyTypeParameter.type;
+    ClassMirror bodyType = getBodyType();
     List<String> fieldNemeList = getClassFieldNames(bodyType);
     List arguments = sortFromList(fieldNemeList, body).values.toList();
 
@@ -38,6 +35,10 @@ class RouteFunc {
         .parameters
         .where((parameter) => parameter.metadata.first.reflectee.type == "body")
         .toList();
+  }
+
+  ClassMirror getBodyType(){
+    return getBodyTypeList().first.type;
   }
 
   //necessaryField
@@ -72,7 +73,7 @@ class RouteFunc {
     if (requestBody.length < getField().length) {
       result = false;
     } else {
-      getField().forEach((key, type) {
+      requestBody.forEach((key, type) {
         if (!(requestBody.containsKey(key) &&
             requestBody[key].runtimeType == type)) {
           result = false;

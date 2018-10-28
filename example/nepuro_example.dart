@@ -1,6 +1,6 @@
 import 'package:nepuro/nepuro.dart';
 
-class User {
+class User implements RequestBodyType{
   String name;
   int age;
   User(this.name, this.age);
@@ -27,6 +27,7 @@ addUser(@Request.body() User user) {
   userList.add(user.asMap());
   return Response.ok(userList)..json();
 }
+
 
 main(List<String> args) {
   Nepuro().server("127.0.0.1", 8080);
