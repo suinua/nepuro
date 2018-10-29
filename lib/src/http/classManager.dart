@@ -33,3 +33,18 @@ List<String> getClassFieldNames(ClassMirror type) {
   return fieldNameList;
 }
 
+Map<String,Type> getClassField(ClassMirror type) {
+  Map<String,Type> fieldList = new Map();
+
+  type.declarations.forEach((key, value) {
+    if (value is VariableMirror) {
+     String fieldName = value
+          .toString()
+          .replaceAll("VariableMirror on ", "")
+          .replaceAll("\'", "");
+      fieldList[fieldName] = value.type.reflectedType;
+    }
+  });
+
+  return fieldList;
+}

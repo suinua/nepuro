@@ -37,7 +37,7 @@ class RouteFunc {
         .toList();
   }
 
-  ClassMirror getBodyType(){
+  ClassMirror getBodyType() {
     return getBodyTypeList().first.type;
   }
 
@@ -68,14 +68,23 @@ class RouteFunc {
     return getNecessaryFieldList().first.field;
   }
 
-    bool validateBody(Map requestBody) {
+  bool isCorrectBody(Map requestBody) {
     bool result = true;
+    
+    //requestBodyのほうがnecessaryFieldより短いのならば
+    //requestBoydは正しくない
     if (requestBody.length < getField().length) {
       result = false;
+    
     } else {
-      requestBody.forEach((key, type) {
+      getField().forEach((key, type) {
         if (!(requestBody.containsKey(key) &&
             requestBody[key].runtimeType == type)) {
+          result = false;
+        }
+      });
+      getClassField(getBodyType()).forEach((fieldName, fieldType) {
+        if (!(requestBody[fieldName].runtimeType == fieldType) && requestBody[fieldName] != null) {
           result = false;
         }
       });
@@ -110,7 +119,7 @@ class RouteFunc {
         int.parse(path);
         break;
       default:
-      //例外処理で「Stringかintのみ対応しています」
+        //例外処理で「Stringかintのみ対応しています」
         path;
     }
   }

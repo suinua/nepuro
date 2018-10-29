@@ -34,10 +34,7 @@ class Nepuro {
           print("status: 404");
         } else {
           //ライブラリの利用者に返すデータ
-          Map<String, dynamic> returnReqData = {
-            "body": null,
-            "path": null
-          };
+          Map<String, dynamic> returnReqData = {"body": null, "path": null};
 
           //ライブラリの利用者がpathデータを要求していたら
           if (routeFunc.isNeedOfPath()) {
@@ -50,16 +47,34 @@ class Nepuro {
             await _getRequestBody(request).then((requestBody) {
               body = requestBody;
             });
-              //ライブラリ利用者がbodyを要求していて
-              //ライブラリ利用者がbodyに設定しているクラスがRequestBodyTypeを実装していたら
-              //ライブラリ利用者が要求しているタイプにbodyを変換
-              bool isRequestBodyType = routeFunc.getBodyType().superinterfaces.contains(reflectClass(RequestBodyType));
-              if (routeFunc.isNeedOfBody() && isRequestBodyType) {
-                returnReqData["body"] = routeFunc.toBodyType(body);
-              } else {
-                returnReqData["body"] = body;
+            //ライブラリ利用者がbodyを要求していて
+            //ライブラリ利用者がbodyに設定しているクラスがRequestBodyTypeを実装していたら
+            //ライブラリ利用者が要求しているタイプにbodyを変換
+            bool isRequestBodyType = routeFunc
+                .getBodyType()
+                .superinterfaces
+                .contains(reflectClass(RequestBodyType));
+
+            //ライブラリ利用者がbodyに設定した型とリクエストの型が一致するかどうか
+            bool isNotCorrectContentType() {
+              Map contentTypeList = {String: ContentType.text};
+              if (isRequestBodyType && request.headers.contentType.value == ContentType.json.value) {
+                return false;
+              }else if (contentTypeList[routeFunc.getBodyType().reflectedType] ==
+                  request.headers.contentType) {
+                return false;
               }
 
+              return true;
+            }
+
+            if (isNotCorrectContentType()) {
+              response.headers.set("Content-Type", "text/plain");
+              response.statusCode = 400;
+              response.close();
+
+              print("status: 400");
+            } else {
               isBadRequest() {
                 //mapのvalueが一つでもnullが含まれているかどうか
                 var hasNullMapValue =
@@ -69,14 +84,12 @@ class Nepuro {
                 //リクエストのbodyが正しくない
                 bool isBodyNotCorrect = routeFunc.isNotNeedOfNecessaryField()
                     ? false
-                    : !routeFunc.validateBody(body);
-
+                    : !routeFunc.isCorrectBody(body);
                 //NecessaryFieldがNull(bodyのNullは禁止) && bodyにNullが含まれる
                 //Bodyが正しくない
                 return routeFunc.isNotNeedOfNecessaryField() &&
                         hasNullMapValue(returnReqData["body"].asMap()) ||
                     isBodyNotCorrect;
-              
               }
 
               if (isBadRequest()) {
@@ -85,15 +98,25 @@ class Nepuro {
                 response.close();
 
                 print("status: 400");
+              } else {
+                //bodyをセット
+                if (isRequestBodyType) {
+                  returnReqData["body"] = routeFunc.toBodyType(body);
+                } else {
+                  returnReqData["body"] = body;
+                }
               }
             }
+          }
 
           //すでにresponseが設定されていなければ(デフォルト値なら)
           if (response.statusCode == 200) {
             //routeFuncInvoke = @Routeがついていてpath,methodが一致する関数
             LibraryMirror owner = routeFunc.method.owner;
-            var routeFuncInvoke =
-                owner.invoke(routeFunc.method.simpleName, requDataToFuncField(getMethodFieldNames(routeFunc.method), returnReqData));
+            var routeFuncInvoke = owner.invoke(
+                routeFunc.method.simpleName,
+                requDataToFuncField(
+                    getMethodFieldNames(routeFunc.method), returnReqData));
 
             //responseを返す
             routeFuncInvoke.reflectee.send(response);
