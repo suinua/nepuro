@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:io';
+import 'dart:async';
 import 'dart:mirrors';
 
 import 'package:nepuro/src/http/arrayManager.dart';
@@ -34,6 +35,7 @@ class Nepuro {
           print("status: 404");
         } else {
           //ライブラリの利用者に返すデータ
+          dynamic body;
           Map<String, dynamic> returnReqData = {"body": null, "path": null};
 
           //ライブラリの利用者がpathデータを要求していたら
@@ -41,27 +43,37 @@ class Nepuro {
             returnReqData["path"] = request.uri.pathSegments.last;
           }
 
+          //ライブラリ利用者がbodyに型を設定していたら
           if (routeFunc.isNeedOfBody()) {
-            dynamic body;
-
-            await _getRequestBody(request).then((requestBody) {
-              body = requestBody;
-            });
-            //ライブラリ利用者がbodyを要求していて
-            //ライブラリ利用者がbodyに設定しているクラスがRequestBodyTypeを実装していたら
-            //ライブラリ利用者が要求しているタイプにbodyを変換
+            //ライブラリ利用者がbodyに設定しているクラスがRequestBodyTypeを実装しているか
             bool isRequestBodyType = routeFunc
                 .getBodyType()
                 .superinterfaces
                 .contains(reflectClass(RequestBodyType));
 
             //ライブラリ利用者がbodyに設定した型とリクエストの型が一致するかどうか
+            var toContentType = () {
+              switch (request.headers.contentType.value) {
+                case "text/plain":
+                  return ContentType.text;
+                  break;
+                case "application/json":
+                  return ContentType.json;
+                  break;
+                case "text/html":
+                  return ContentType.html;
+                  break;
+                default:
+              }
+            };
+            ContentType requestContentType = toContentType();
+            Map<Type, ContentType> contentTypeList = {String: ContentType.text};
             bool isNotCorrectContentType() {
-              Map contentTypeList = {String: ContentType.text};
-              if (isRequestBodyType && request.headers.contentType.value == ContentType.json.value) {
+              if (isRequestBodyType && requestContentType == ContentType.json) {
                 return false;
-              }else if (contentTypeList[routeFunc.getBodyType().reflectedType] ==
-                  request.headers.contentType) {
+              } else if (contentTypeList[
+                      routeFunc.getBodyType().reflectedType] ==
+                  requestContentType) {
                 return false;
               }
 
@@ -73,41 +85,47 @@ class Nepuro {
               response.statusCode = 400;
               response.close();
 
-              print("status: 400");
-            } else {
-              isBadRequest() {
-                //mapのvalueが一つでもnullが含まれているかどうか
-                var hasNullMapValue =
-                    (Map map) => map.values.toList().contains(null);
+              print("status: 400,ContentType is not correct");
+            } else if (requestContentType == ContentType.text) {
+              await _getRequestBody(request).then((requestBody) {
+                body = requestBody;
+              });
+            } else if (isRequestBodyType) {
+              await _getRequestBody(request).then((requestBody) {
+                body = requestBody;
+              });
 
-                //NecessaryFieldが空で無い
-                //リクエストのbodyが正しくない
-                bool isBodyNotCorrect = routeFunc.isNotNeedOfNecessaryField()
-                    ? false
-                    : !routeFunc.isCorrectBody(body);
-                //NecessaryFieldがNull(bodyのNullは禁止) && bodyにNullが含まれる
-                //Bodyが正しくない
+              isOkRequest() {
+                var isNotContainsNull =
+                    (Map map) => !map.values.toList().contains(null);
+
+                bool isBodyCorrect = routeFunc.isNotNeedOfNecessaryField()
+                    ? true
+                    : routeFunc.isCorrectBody(body);
+
                 return routeFunc.isNotNeedOfNecessaryField() &&
-                        hasNullMapValue(returnReqData["body"].asMap()) ||
-                    isBodyNotCorrect;
+                        isNotContainsNull(returnReqData["body"].asMap()) ||
+                    isBodyCorrect;
               }
 
-              if (isBadRequest()) {
+              if (isOkRequest()) {
+                body = routeFunc.toBodyType(body);
+              } else {
                 response.headers.set("Content-Type", "text/plain");
                 response.statusCode = 400;
                 response.close();
 
                 print("status: 400");
-              } else {
-                //bodyをセット
-                if (isRequestBodyType) {
-                  returnReqData["body"] = routeFunc.toBodyType(body);
-                } else {
-                  returnReqData["body"] = body;
-                }
               }
+            } else {
+              response.headers.set("Content-Type", "text/plain");
+              response.statusCode = 400;
+              response.close();
+
+              print("status: 400");
             }
           }
+          returnReqData["body"] = body;
 
           //すでにresponseが設定されていなければ(デフォルト値なら)
           if (response.statusCode == 200) {
