@@ -1,6 +1,7 @@
 import 'dart:mirrors';
 import 'dart:io';
 
+import 'package:nepuro/src/http/arrayManager.dart';
 import 'package:nepuro/src/http/route_body.dart';
 import 'package:nepuro/src/http/get_field.dart';
 import 'package:nepuro/src/http/required_field.dart';
@@ -48,6 +49,15 @@ class Route implements Path, RequiredField {
       });
     }
     return result;
+  }
+  sendResponse(Map returnReqData,HttpResponse response) {
+    LibraryMirror owner = method.owner;
+    var routeFunc = owner.invoke(
+        method.simpleName,
+        requDataToFuncField(
+            getMethodFieldNames(method), returnReqData));
+
+    routeFunc.reflectee.send(response);
   }
 }
 

@@ -17,10 +17,11 @@ class Response {
   }
 
   send(HttpResponse response) {
-    response.headers.contentType = this.contentType;
-    response.statusCode = this.status;
-    response.write(this.body);
-    response.close();
+    response
+      ..headers.contentType = this.contentType
+      ..statusCode = this.status
+      ..write(this.body)
+      ..close();
   }
 
   Response(this.body, this.status) : this.contentType = ContentType.text;
