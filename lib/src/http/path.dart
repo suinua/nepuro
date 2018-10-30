@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:mirrors';
 
-import 'package:nepuro/src/http/annotated_func.dart';
+import 'package:nepuro/src/http/get_method.dart';
 
 class Path {
   final String httpPath;

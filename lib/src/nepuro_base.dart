@@ -4,7 +4,7 @@ import 'dart:async';
 import 'dart:mirrors';
 
 import 'package:nepuro/src/http/arrayManager.dart';
-import 'package:nepuro/src/http/classManager.dart';
+import 'package:nepuro/src/http/get_field.dart';
 import 'package:nepuro/src/http/body_object.dart';
 import 'package:nepuro/src/http/route.dart';
 import 'package:nepuro/src/http/route_body.dart';

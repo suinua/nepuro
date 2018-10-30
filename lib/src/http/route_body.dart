@@ -1,7 +1,7 @@
 import 'dart:mirrors';
 
 import 'package:nepuro/src/http/arrayManager.dart';
-import 'package:nepuro/src/http/classManager.dart';
+import 'package:nepuro/src/http/get_field.dart';
 
 List<ParameterMirror> getBodyTypeList(MethodMirror method) {
   return method.parameters

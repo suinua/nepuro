@@ -1,6 +1,6 @@
 import 'package:nepuro/nepuro.dart';
 
-class User implements BodyObject{
+class User implements BodyObject {
   String name;
   int age;
   User(this.name, this.age);
@@ -17,7 +17,8 @@ getAllUser() {
 
 @Path.get("/User")
 getUser(@Call.path() String name) {
-  return Response.ok(userList.where((user) => user["name"] == name).toList())..json();
+  return Response.ok(userList.where((user) => user["name"] == name).toList())
+    ..json();
 }
 
 //POST: http://localhost:8080/User
