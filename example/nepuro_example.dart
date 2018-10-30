@@ -29,5 +29,5 @@ addUser(@Call.body() User user) {
 }
 
 main(List<String> args) {
-  Nepuro().server("127.0.0.1", 8080);
+  Nepuro().server();
 }

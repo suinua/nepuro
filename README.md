@@ -24,13 +24,13 @@ import 'package:nepuro/nepuro.dart';
 
 //GET: http://localhost:8080/Hello
 // >> Hello World
-@Route.get("/Hello")
-hello(Request request) {
-  return Response("Hello World", 200)..text();
+@Path.get("/Hello")
+hello() {
+  return Response.ok("Hello World")..text();
 }
 
 main() {
-  Nepuro().server("127.0.0.1", 8080);
+  Nepuro().server();
 }
 ```
 
@@ -57,12 +57,12 @@ import 'package:nepuro/nepuro.dart';
 
 //GET: http://localhost:8080/Hello
 // >> Hello World
-@Route.get("/Hello")
-hello(Request request) {
-  return Response("Hello World", 200)..text();
+@Path.get("/Hello")
+hello() {
+  return Response.ok("Hello World")..text();
 }
 
 main() {
-  Nepuro().server("127.0.0.1", 8080);
+  Nepuro().server();
 }
 ```

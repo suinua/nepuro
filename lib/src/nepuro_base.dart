@@ -10,7 +10,7 @@ import 'package:nepuro/src/http/route.dart';
 import 'package:nepuro/src/http/route_body.dart';
 
 class Nepuro {
-  server(String ip, int port) async {
+  server({String ip = "127.0.0.1", int port = 8080}) async {
     print("start");
     print("http://${ip}:${port}");
 
@@ -23,8 +23,7 @@ class Nepuro {
         //@Routeのつく関数、メタデータをすべて取得
         final List<Route> routeList = getRouteList();
         //routeListのなかからpath,methodが一致する関数のみ取得
-        final Route route =
-            await getMatchRoute(request, routeList);
+        final Route route = await getMatchRoute(request, routeList);
 
         //routeが空かNullなら　404を返す
         if (route == null) {
@@ -47,8 +46,7 @@ class Nepuro {
           //ライブラリ利用者がbodyに型を設定していたら
           if (route.isCallBody) {
             //ライブラリ利用者がbodyに設定しているクラスがRequestBodyTypeを実装しているか
-            bool isRequestBodyType = 
-                getBodyType(route.method)
+            bool isRequestBodyType = getBodyType(route.method)
                 .superinterfaces
                 .contains(reflectClass(BodyObject));
 
@@ -110,7 +108,7 @@ class Nepuro {
               }
 
               if (isOkRequest()) {
-                body = toBodyType(route.method,body);
+                body = toBodyType(route.method, body);
               } else {
                 response.headers.set("Content-Type", "text/plain");
                 response.statusCode = 400;
