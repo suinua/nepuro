@@ -1,6 +1,6 @@
 import 'package:nepuro/nepuro.dart';
 
-class User implements RequestBodyType{
+class User implements BodyObject{
   String name;
   int age;
   User(this.name, this.age);
@@ -10,24 +10,23 @@ class User implements RequestBodyType{
 
 List<Map> userList = new List();
 
-@Route.get("/User")
+@Path.get("/User")
 getAllUser() {
   return Response.ok(userList)..json();
 }
 
-@Route.get("/User")
-getUser(@Request.path() String name) {
+@Path.get("/User")
+getUser(@Call.path() String name) {
   return Response.ok(userList.where((user) => user["name"] == name).toList())..json();
 }
 
 //POST: http://localhost:8080/User
-@Route.post("/User")
-@NecessaryField({"name": String})
-addUser(@Request.body() User user) {
+@Path.post("/User")
+@RequiredField({"name": String})
+addUser(@Call.body() User user) {
   userList.add(user.asMap());
   return Response.ok(userList)..json();
 }
-
 
 main(List<String> args) {
   Nepuro().server("127.0.0.1", 8080);

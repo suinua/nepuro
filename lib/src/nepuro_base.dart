@@ -5,8 +5,9 @@ import 'dart:mirrors';
 
 import 'package:nepuro/src/http/arrayManager.dart';
 import 'package:nepuro/src/http/classManager.dart';
-import 'package:nepuro/src/http/model/RequestBodyType.dart';
-import 'package:nepuro/src/http/model/RouteFunc.dart';
+import 'package:nepuro/src/http/body_object.dart';
+import 'package:nepuro/src/http/route.dart';
+import 'package:nepuro/src/http/route_body.dart';
 
 class Nepuro {
   server(String ip, int port) async {
@@ -20,13 +21,13 @@ class Nepuro {
         HttpResponse response = request.response;
 
         //@Routeのつく関数、メタデータをすべて取得
-        final List<RouteFunc> routeFuncList = RouteFuncData().getAll();
+        final List<Route> routeList = getRouteList();
         //routeListのなかからpath,methodが一致する関数のみ取得
-        final RouteFunc routeFunc =
-            await RouteFuncData().getMatch(request, routeFuncList);
+        final Route route =
+            await getMatchRoute(request, routeList);
 
         //routeが空かNullなら　404を返す
-        if (routeFunc == null) {
+        if (route == null) {
           response.headers.set("Content-Type", "text/plain");
           response.statusCode = 404;
           response.write("NOT FOUND");
@@ -39,17 +40,17 @@ class Nepuro {
           Map<String, dynamic> returnReqData = {"body": null, "path": null};
 
           //ライブラリの利用者がpathデータを要求していたら
-          if (routeFunc.isNeedOfPath()) {
+          if (route.isCallVarPath) {
             returnReqData["path"] = request.uri.pathSegments.last;
           }
 
           //ライブラリ利用者がbodyに型を設定していたら
-          if (routeFunc.isNeedOfBody()) {
+          if (route.isCallBody) {
             //ライブラリ利用者がbodyに設定しているクラスがRequestBodyTypeを実装しているか
-            bool isRequestBodyType = routeFunc
-                .getBodyType()
+            bool isRequestBodyType = 
+                getBodyType(route.method)
                 .superinterfaces
-                .contains(reflectClass(RequestBodyType));
+                .contains(reflectClass(BodyObject));
 
             //ライブラリ利用者がbodyに設定した型とリクエストの型が一致するかどうか
             var toContentType = () {
@@ -72,7 +73,7 @@ class Nepuro {
               if (isRequestBodyType && requestContentType == ContentType.json) {
                 return false;
               } else if (contentTypeList[
-                      routeFunc.getBodyType().reflectedType] ==
+                      getBodyType(route.method).reflectedType] ==
                   requestContentType) {
                 return false;
               }
@@ -99,17 +100,17 @@ class Nepuro {
                 var isNotContainsNull =
                     (Map map) => !map.values.toList().contains(null);
 
-                bool isBodyCorrect = routeFunc.isNotNeedOfNecessaryField()
+                bool isBodyCorrect = route.requiredField.isEmpty
                     ? true
-                    : routeFunc.isCorrectBody(body);
+                    : route.isCorrectBody(body);
 
-                return routeFunc.isNotNeedOfNecessaryField() &&
+                return route.requiredField.isEmpty &&
                         isNotContainsNull(returnReqData["body"].asMap()) ||
                     isBodyCorrect;
               }
 
               if (isOkRequest()) {
-                body = routeFunc.toBodyType(body);
+                body = toBodyType(route.method,body);
               } else {
                 response.headers.set("Content-Type", "text/plain");
                 response.statusCode = 400;
@@ -129,15 +130,15 @@ class Nepuro {
 
           //すでにresponseが設定されていなければ(デフォルト値なら)
           if (response.statusCode == 200) {
-            //routeFuncInvoke = @Routeがついていてpath,methodが一致する関数
-            LibraryMirror owner = routeFunc.method.owner;
-            var routeFuncInvoke = owner.invoke(
-                routeFunc.method.simpleName,
+            //routeFunc = @Routeがついていてpath,methodが一致する関数
+            LibraryMirror owner = route.method.owner;
+            var routeFunc = owner.invoke(
+                route.method.simpleName,
                 requDataToFuncField(
-                    getMethodFieldNames(routeFunc.method), returnReqData));
+                    getMethodFieldNames(route.method), returnReqData));
 
             //responseを返す
-            routeFuncInvoke.reflectee.send(response);
+            routeFunc.reflectee.send(response);
             print("status: ${response.statusCode}");
           }
         }
