@@ -9,7 +9,7 @@ List<ParameterMirror> getBodyTypeList(MethodMirror method) {
       .toList();
 }
 
-ClassMirror getBodyType(MethodMirror method){
+ClassMirror getBodyType(MethodMirror method) {
   return getBodyTypeList(method).first.type;
 }
 
@@ -19,4 +19,12 @@ dynamic toBodyType(MethodMirror method, Map body) {
   List arguments = sortFromList(fieldNemeList, body).values.toList();
 
   return bodyType.newInstance(bodyType.owner.simpleName, arguments).reflectee;
+}
+
+String getContentType(MethodMirror method) {
+  String contenType;
+  method.parameters.forEach((parameter){
+    contenType = parameter.metadata.first.reflectee.contentType;
+  });
+  return contenType;
 }

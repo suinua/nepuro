@@ -55,28 +55,12 @@ class Nepuro {
           .contains(reflectClass(BodyObject));
 
       //ライブラリ利用者がbodyに設定した型とリクエストの型が一致するかどうか
-      ContentType requestContentType = RequestBody().toContentType(request);
-      Map<Type, ContentType> contentTypeList = {String: ContentType.text};
-      bool isNotCorrectContentType() {
-        if (isBodyObject && requestContentType == ContentType.json) {
-          return false;
-        } else if (contentTypeList[getBodyType(route.method).reflectedType] ==
-            requestContentType) {
-          return false;
-        }
-        return true;
-      }
+      String requestContentType = request.headers.contentType.value;
 
-      //一致していなければ400
-      if (isNotCorrectContentType()) {
-        Response.badRequest("bad request").send(response);
-        print("status: 400");
-        return 400;
-      }
 
       //ContentTypeがtextならそのまま代入して返す
-      if (requestContentType == ContentType.text) {
-        await RequestBody().parse(request).then((requestBody) {
+      if (route.contentType == requestContentType) {
+        await requestBodyParse(request).then((requestBody) {
           returnReqData["body"] = requestBody;
         });
         route.sendResponse(returnReqData, response);
@@ -86,14 +70,14 @@ class Nepuro {
       }
 
       //
-      if (!isBodyObject) {
+      if (!(isBodyObject && requestContentType == ContentType.json.value)) {
         Response.badRequest("bad request").send(response);
 
         print("status: 400");
         return 400;
       }
 
-      await RequestBody().parse(request).then((requestBody) {
+      await requestBodyParse(request).then((requestBody) {
         body = requestBody;
       });
 

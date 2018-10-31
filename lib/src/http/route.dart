@@ -16,6 +16,7 @@ class Route implements Path, RequiredField {
 
   bool isCallBody;
   bool isCallVarPath;
+  String contentType;
 
   MethodMirror method;
 
@@ -23,6 +24,7 @@ class Route implements Path, RequiredField {
       : 
         this.httpMethod = getHttpMethod(method),
         this.httpPath = getHttpPath(method),
+        this.contentType = getContentType(method),
         this.requiredField = getRequiredField(method),
         this.isCallBody = getBodyTypeList(method).isNotEmpty,
         this.isCallVarPath = getVarPathTypeList(method).isNotEmpty;
