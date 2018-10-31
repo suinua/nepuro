@@ -14,7 +14,7 @@ class Nepuro {
 
     var server = await HttpServer.bind(ip, port);
 
-    await for (HttpRequest request in server) {
+    server.listen((HttpRequest request) async {
       print("[${request.method}] ${request.uri.path}");
 
       HttpResponse response = request.response;
@@ -118,6 +118,6 @@ class Nepuro {
       route.sendResponse(returnReqData, response);
       print("status: ${response.statusCode}");
       return 200;
-    }
+    });
   }
 }
