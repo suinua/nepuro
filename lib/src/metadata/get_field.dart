@@ -1,8 +1,7 @@
 import 'dart:mirrors';
 
-import 'package:nepuro/src/http/call.dart';
 
-List<Map> getMethodFieldNames(MethodMirror method){
+List<Map> getMethodFieldNames(Type type,MethodMirror method){
   List<Map> fieldNameList = new List();
 
   method.parameters.forEach((parameter) {
@@ -10,7 +9,7 @@ List<Map> getMethodFieldNames(MethodMirror method){
           .toString()
           .replaceAll("ParameterMirror on ", "")
           .replaceAll("\'", "");
-      bool isRequest = parameter.metadata.isEmpty ? false : parameter.metadata.first.reflectee.runtimeType == Call;
+      bool isRequest = parameter.metadata.isEmpty ? false : parameter.metadata.first.reflectee.runtimeType == type;
       String requestType = isRequest ? parameter.metadata.first.reflectee.type : null;
       fieldNameList.add({"name":name,"isRequest":isRequest,"requestType":requestType});
   });

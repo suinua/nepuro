@@ -1,6 +1,6 @@
 import 'dart:mirrors';
 
-import 'package:nepuro/src/http/get_method.dart';
+import 'package:nepuro/src/metadata/get_method.dart';
 
 class Path {
   final String httpPath;

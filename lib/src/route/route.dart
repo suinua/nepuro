@@ -1,12 +1,13 @@
 import 'dart:mirrors';
 import 'dart:io';
 
-import 'package:nepuro/src/http/arrayManager.dart';
-import 'package:nepuro/src/http/route_body.dart';
-import 'package:nepuro/src/http/get_field.dart';
-import 'package:nepuro/src/http/required_field.dart';
-import 'package:nepuro/src/http/path.dart';
-import 'package:nepuro/src/http/route_var_path.dart';
+import 'package:nepuro/src/annotation/call.dart';
+import 'package:nepuro/src/request_body.dart';
+import 'package:nepuro/src/route/route_body.dart';
+import 'package:nepuro/src/metadata/get_field.dart';
+import 'package:nepuro/src/annotation/required_field.dart';
+import 'package:nepuro/src/annotation/path.dart';
+import 'package:nepuro/src/route/route_var_path.dart';
 
 class Route implements Path, RequiredField {
   String httpPath;
@@ -21,8 +22,7 @@ class Route implements Path, RequiredField {
   MethodMirror method;
 
   Route(this.method)
-      : 
-        this.httpMethod = getHttpMethod(method),
+      : this.httpMethod = getHttpMethod(method),
         this.httpPath = getHttpPath(method),
         this.contentType = getContentType(method),
         this.requiredField = getRequiredField(method),
@@ -52,12 +52,11 @@ class Route implements Path, RequiredField {
     }
     return result;
   }
-  sendResponse(Map returnReqData,HttpResponse response) {
+
+  sendResponse(CallBackData callBackData, HttpResponse response) {
     LibraryMirror owner = method.owner;
-    var routeFunc = owner.invoke(
-        method.simpleName,
-        requDataToFuncField(
-            getMethodFieldNames(method), returnReqData));
+    var routeFunc = owner.invoke(method.simpleName,
+        callBackData.toMethodField(getMethodFieldNames(Call,method)));
 
     routeFunc.reflectee.send(response);
   }
@@ -82,7 +81,8 @@ Route getMatchRoute(HttpRequest request, List<Route> routeList) {
       }
 
       //variablePathがあり &&　正規表現と一致する
-      if (RegExp("\^${route.httpPath}/.((?!/).)*\$").hasMatch(request.uri.path) &&
+      if (RegExp("\^${route.httpPath}/.((?!/).)*\$")
+              .hasMatch(request.uri.path) &&
           route.isCallVarPath) {
         return true;
       }

@@ -1,11 +1,11 @@
 import 'dart:io';
 import 'dart:mirrors';
 
-import 'package:nepuro/src/http/body_object.dart';
-import 'package:nepuro/src/http/request_body.dart';
-import 'package:nepuro/src/http/response.dart';
-import 'package:nepuro/src/http/route.dart';
-import 'package:nepuro/src/http/route_body.dart';
+import 'package:nepuro/src/annotation/body_object.dart';
+import 'package:nepuro/src/request_body.dart';
+import 'package:nepuro/src/response.dart';
+import 'package:nepuro/src/route/route.dart';
+import 'package:nepuro/src/route/route_body.dart';
 
 class Nepuro {
   server({String ip = "127.0.0.1", int port = 8080}) async {
@@ -33,40 +33,47 @@ class Nepuro {
       }
 
       //ライブラリの利用者に返すデータ
-      dynamic body;
-      Map<String, dynamic> returnReqData = {"body": null, "path": null};
+      CallBackData callBackData = CallBackData(request, null);
 
       //ライブラリの利用者がpathデータを要求していたら
       if (route.isCallVarPath) {
-        returnReqData["path"] = request.uri.pathSegments.last;
+        callBackData.varPath = request.uri.pathSegments.last;
       }
 
-      //ライブラリ利用者がbodyに型を設定していなければ
+      //ライブラリの利用者がbodyデータを要求していなければ
       if (!route.isCallBody) {
-        route.sendResponse(returnReqData, response);
+        route.sendResponse(callBackData, response);
         print("status: ${response.statusCode}");
 
         return response.statusCode;
       }
 
       //ライブラリ利用者がbodyに設定しているクラスがRequestBodyTypeを実装しているか
-      bool isBodyObject = getBodyType(route.method)
-          .superinterfaces
-          .contains(reflectClass(BodyObject));
+      bool isBodyObject = false;
+      getBodyType(route.method).metadata.forEach((metadata){
+        print(metadata.reflectee);
+        if (metadata.reflectee is BodyObject){
+          isBodyObject = true;
+        }
+      });
 
       //ライブラリ利用者がbodyに設定した型とリクエストの型が一致するかどうか
       String requestContentType = request.headers.contentType.value;
 
-
       //ContentTypeがtextならそのまま代入して返す
       if (route.contentType == requestContentType) {
-        await requestBodyParse(request).then((requestBody) {
-          returnReqData["body"] = requestBody;
+        bool isSuccess;
+        await callBackData
+            .bodyParse(request.headers.contentType.value)
+            .then((result) {
+          isSuccess = result;
         });
-        route.sendResponse(returnReqData, response);
-        print("status: ${response.statusCode}");
+        if (!isSuccess) {
+          Response.badRequest("bad request").send(response);
 
-        return response.statusCode;
+          print("status: 400");
+          return 404;
+        }
       }
 
       //
@@ -77,18 +84,26 @@ class Nepuro {
         return 400;
       }
 
-      await requestBodyParse(request).then((requestBody) {
-        body = requestBody;
+      bool isSuccess;
+      await callBackData.bodyParse(request.headers.contentType.value).then((result) {
+        isSuccess = result;
       });
+      if (!isSuccess) {
+        Response.badRequest("bad request").send(response);
+
+        print("status: 400");
+        return 404;
+      }
 
       isBadRequest() {
         var isContainNull = (Map map) => map.values.toList().contains(null);
 
-        bool isBodyNotCorrect =
-            route.requiredField.isEmpty ? false : !route.isCorrectBody(body);
+        bool isBodyNotCorrect = route.requiredField.isEmpty
+            ? false
+            : !route.isCorrectBody(callBackData.body);
 
         return route.requiredField.isEmpty &&
-                isContainNull(returnReqData["body"].asMap()) ||
+                isContainNull(callBackData.body.asMap()) ||
             isBodyNotCorrect;
       }
 
@@ -98,8 +113,9 @@ class Nepuro {
         return 400;
       }
 
-      returnReqData["body"] = toBodyType(route.method, body);
-      route.sendResponse(returnReqData, response);
+      callBackData.toSetBodyType(route.method);
+
+      route.sendResponse(callBackData, response);
       print("status: ${response.statusCode}");
       return 200;
     });
