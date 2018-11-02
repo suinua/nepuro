@@ -37,8 +37,8 @@ class Nepuro {
       CallBackData callBackData = CallBackData(request, null);
 
       //ライブラリの利用者がpathデータを要求していたら
-      if (route.isCallVarPath) {
-        callBackData.varPath = toVarPathType(route.method, request.uri.pathSegments.last);
+      if (route.isCallPathVar) {
+        callBackData.pathVar = toPathVarType(route.method, request.uri.pathSegments.last);
       }
 
       //ライブラリの利用者がbodyデータを要求していなければ

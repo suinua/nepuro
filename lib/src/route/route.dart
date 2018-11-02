@@ -16,7 +16,7 @@ class Route implements Path, RequiredField {
   Map<String, Type> requiredField;
 
   bool isCallBody;
-  bool isCallVarPath;
+  bool isCallPathVar;
   String contentType;
 
   MethodMirror method;
@@ -27,7 +27,7 @@ class Route implements Path, RequiredField {
         this.contentType = getContentType(method),
         this.requiredField = getRequiredField(method),
         this.isCallBody = getBodyTypeList(method).isNotEmpty,
-        this.isCallVarPath = getVarPathTypeList(method).isNotEmpty;
+        this.isCallPathVar = getPathVarTypeList(method).isNotEmpty;
 
   bool isCorrectBody(Map requestBody) {
     bool result = true;
@@ -76,14 +76,14 @@ Route getMatchRoute(HttpRequest request, List<Route> routeList) {
     //methodが一致していれば
     if (request.method == route.httpMethod) {
       //variablePathが無い && パスが完全一致する
-      if (!route.isCallVarPath && route.routePath == request.uri.path) {
+      if (!route.isCallPathVar && route.routePath == request.uri.path) {
         return true;
       }
 
       //variablePathがあり &&　正規表現と一致する
       if (RegExp("\^${route.routePath}/.((?!/).)*\$")
               .hasMatch(request.uri.path) &&
-          route.isCallVarPath) {
+          route.isCallPathVar) {
         return true;
       }
     }

@@ -1,13 +1,13 @@
 import 'dart:mirrors';
 
-List<ParameterMirror> getVarPathTypeList(MethodMirror method) {
+List<ParameterMirror> getPathVarTypeList(MethodMirror method) {
   return method.parameters
       .where((parameter) => parameter.metadata.first.reflectee.type == "path")
       .toList();
 }
 
-dynamic toVarPathType(MethodMirror method, dynamic path) {
-  Type pathType = getVarPathTypeList(method).first.type.reflectedType;
+dynamic toPathVarType(MethodMirror method, dynamic path) {
+  Type pathType = getPathVarTypeList(method).first.type.reflectedType;
   switch (pathType) {
     case String:
       return path.toString();
