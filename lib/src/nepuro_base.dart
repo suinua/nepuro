@@ -51,7 +51,6 @@ class Nepuro {
       //ライブラリ利用者がbodyに設定しているクラスがRequestBodyTypeを実装しているか
       bool isBodyObject = false;
       getBodyType(route.method).metadata.forEach((metadata){
-        print(metadata.reflectee);
         if (metadata.reflectee is BodyObject){
           isBodyObject = true;
         }
