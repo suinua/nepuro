@@ -26,7 +26,6 @@ getAllUser() {
 
 @Path.get("/User")
 getUser(@Call.path() String name) {
-  print(name);
   return Response.ok(userList.where((user) => user["name"] == name).toList())
     ..json();
 }
