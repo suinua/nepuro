@@ -3,16 +3,16 @@ import 'dart:mirrors';
 import 'package:nepuro/src/metadata/get_method.dart';
 
 class Path {
-  final String httpPath;
+  final String routePath;
   final String httpMethod;
 
-  const Path.get(this.httpPath) : this.httpMethod = "GET";
+  const Path.get(this.routePath) : this.httpMethod = "GET";
 
-  const Path.post(this.httpPath) : this.httpMethod = "POST";
+  const Path.post(this.routePath) : this.httpMethod = "POST";
 
-  const Path.put(this.httpPath) : this.httpMethod = "PUT";
+  const Path.put(this.routePath) : this.httpMethod = "PUT";
 
-  const Path.delete(this.httpPath) : this.httpMethod = "DELETE";
+  const Path.delete(this.routePath) : this.httpMethod = "DELETE";
 }
 
 List<MethodMirror> getPathMethodList() {
@@ -24,14 +24,14 @@ List<MethodMirror> getPathMethodList() {
   return pathMethodList;
 }
 
-String getHttpPath(MethodMirror method){
-  String httpPath;
+String getRoutePath(MethodMirror method){
+  String routePath;
   method.metadata.forEach((metadata){
     if(metadata.type.reflectedType == Path){
-      httpPath = metadata.reflectee.httpPath;
+      routePath = metadata.reflectee.routePath;
     }
   });
-  return httpPath;
+  return routePath;
 }
 
 String getHttpMethod(MethodMirror method){

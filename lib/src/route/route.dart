@@ -10,7 +10,7 @@ import 'package:nepuro/src/annotation/path.dart';
 import 'package:nepuro/src/route/route_var_path.dart';
 
 class Route implements Path, RequiredField {
-  String httpPath;
+  String routePath;
   String httpMethod;
 
   Map<String, Type> requiredField;
@@ -23,7 +23,7 @@ class Route implements Path, RequiredField {
 
   Route(this.method)
       : this.httpMethod = getHttpMethod(method),
-        this.httpPath = getHttpPath(method),
+        this.routePath = getRoutePath(method),
         this.contentType = getContentType(method),
         this.requiredField = getRequiredField(method),
         this.isCallBody = getBodyTypeList(method).isNotEmpty,
@@ -76,12 +76,12 @@ Route getMatchRoute(HttpRequest request, List<Route> routeList) {
     //methodが一致していれば
     if (request.method == route.httpMethod) {
       //variablePathが無い && パスが完全一致する
-      if (!route.isCallVarPath && route.httpPath == request.uri.path) {
+      if (!route.isCallVarPath && route.routePath == request.uri.path) {
         return true;
       }
 
       //variablePathがあり &&　正規表現と一致する
-      if (RegExp("\^${route.httpPath}/.((?!/).)*\$")
+      if (RegExp("\^${route.routePath}/.((?!/).)*\$")
               .hasMatch(request.uri.path) &&
           route.isCallVarPath) {
         return true;

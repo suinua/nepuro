@@ -6,6 +6,7 @@ import 'package:nepuro/src/request_body.dart';
 import 'package:nepuro/src/response.dart';
 import 'package:nepuro/src/route/route.dart';
 import 'package:nepuro/src/route/route_body.dart';
+import 'package:nepuro/src/route/route_var_path.dart';
 
 class Nepuro {
   server({String ip = "127.0.0.1", int port = 8080}) async {
@@ -37,7 +38,7 @@ class Nepuro {
 
       //ライブラリの利用者がpathデータを要求していたら
       if (route.isCallVarPath) {
-        callBackData.varPath = request.uri.pathSegments.last;
+        callBackData.varPath = toVarPathType(route.method, request.uri.pathSegments.last);
       }
 
       //ライブラリの利用者がbodyデータを要求していなければ
@@ -75,7 +76,7 @@ class Nepuro {
         }
       }
 
-      //
+      //@BodyObjectのついたクラスでない && リクエストのコンテンツタイプがjsonでない
       if (!(isBodyObject && requestContentType == ContentType.json.value)) {
         Response.badRequest("bad request").send(response);
 

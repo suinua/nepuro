@@ -6,7 +6,7 @@ List<ParameterMirror> getVarPathTypeList(MethodMirror method) {
       .toList();
 }
 
-toPathType(MethodMirror method, dynamic path) {
+dynamic toVarPathType(MethodMirror method, dynamic path) {
   Type pathType = getVarPathTypeList(method).first.type.reflectedType;
   switch (pathType) {
     case String:
