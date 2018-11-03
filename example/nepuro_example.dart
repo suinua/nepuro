@@ -22,7 +22,7 @@ getAllUser() {
 }
 
 //GET: http://localhost:8080/User/[:name]
-@Path.get("/User")
+@Path.get("/User/[:name]")
 getUser(@Call.path() String name) {
   return Response.ok(userList.where((user) => user["name"] == name).toList())
     ..json();
