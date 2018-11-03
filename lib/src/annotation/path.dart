@@ -43,3 +43,7 @@ String getHttpMethod(MethodMirror method){
   });
   return httpMethod;
 }
+
+bool isContainsPathVar(String routePath){
+  return RegExp("\[\:(.*)\]").hasMatch(routePath);
+}

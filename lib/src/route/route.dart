@@ -11,6 +11,7 @@ import 'package:nepuro/src/route/route_var_path.dart';
 
 class Route implements Path, RequiredField {
   String routePath;
+  bool isPathVar;
   String httpMethod;
 
   Map<String, Type> requiredField;
@@ -22,8 +23,9 @@ class Route implements Path, RequiredField {
   MethodMirror method;
 
   Route(this.method)
-      : this.httpMethod = getHttpMethod(method),
+      : this.isPathVar = isContainsPathVar(getRoutePath(method)),
         this.routePath = getRoutePath(method),
+        this.httpMethod = getHttpMethod(method),
         this.contentType = getContentType(method),
         this.requiredField = getRequiredField(method),
         this.isCallBody = getBodyTypeList(method).isNotEmpty,
@@ -56,7 +58,7 @@ class Route implements Path, RequiredField {
   sendResponse(CallBackData callBackData, HttpResponse response) {
     LibraryMirror owner = method.owner;
     var routeFunc = owner.invoke(method.simpleName,
-        callBackData.toMethodField(getMethodFieldNames(Call,method)));
+        callBackData.toMethodField(getMethodFieldNames(Call, method)));
 
     routeFunc.reflectee.send(response);
   }
@@ -76,14 +78,15 @@ Route getMatchRoute(HttpRequest request, List<Route> routeList) {
     //methodが一致していれば
     if (request.method == route.httpMethod) {
       //variablePathが無い && パスが完全一致する
-      if (!route.isCallPathVar && route.routePath == request.uri.path) {
+      if (!route.isPathVar && route.routePath == request.uri.path) {
         return true;
       }
 
       //variablePathがあり &&　正規表現と一致する
-      if (RegExp("\^${route.routePath}/.((?!/).)*\$")
+      var removePathVar = route.routePath.replaceAll(RegExp(r"/\[\:(.*)\]"), "");
+      if (RegExp("\^${removePathVar}/.((?!/).)*\$")
               .hasMatch(request.uri.path) &&
-          route.isCallPathVar) {
+          route.isPathVar) {
         return true;
       }
     }
