@@ -11,7 +11,10 @@ import 'package:nepuro/src/route/route_var_path.dart';
 
 class Route implements Path, RequiredField {
   String routePath;
+  Map<String,dynamic> pathSegments;
+
   bool isPathVar;
+
   String httpMethod;
 
   Map<String, Type> requiredField;
@@ -23,13 +26,14 @@ class Route implements Path, RequiredField {
   MethodMirror method;
 
   Route(this.method)
-      : this.isPathVar = isContainsPathVar(getRoutePath(method)),
-        this.routePath = getRoutePath(method),
+      : this.routePath = getRoutePath(method),
+        this.pathSegments = pathToSegments(getRoutePath(method)),
+        this.isPathVar = isContainsPathVar(getRoutePath(method)),
         this.httpMethod = getHttpMethod(method),
-        this.contentType = getContentType(method),
         this.requiredField = getRequiredField(method),
         this.isCallBody = getBodyTypeList(method).isNotEmpty,
-        this.isCallPathVar = getPathVarTypeList(method).isNotEmpty;
+        this.isCallPathVar = getPathVarTypeList(method).isNotEmpty,
+        this.contentType = getContentType(method);
 
   bool isCorrectBody(Map requestBody) {
     bool result = true;
@@ -75,23 +79,27 @@ List<Route> getRouteList() {
 
 Route getMatchRoute(HttpRequest request, List<Route> routeList) {
   _isMatchRoute(Route route) {
-    //methodが一致していれば
-    if (request.method == route.httpMethod) {
-      //variablePathが無い && パスが完全一致する
-      if (!route.isPathVar && route.routePath == request.uri.path) {
-        return true;
-      }
+    if (route.pathSegments.length != request.uri.pathSegments.length) {
+      return false;
+    }
 
-      //variablePathがあり &&　正規表現と一致する
-      var removePathVar = route.routePath.replaceAll(RegExp(r"/\[\:(.*)\]"), "");
-      if (RegExp("\^${removePathVar}/.((?!/).)*\$")
-              .hasMatch(request.uri.path) &&
-          route.isPathVar) {
-        return true;
+    //methodが一致していない
+    if (request.method != route.httpMethod) {
+      return false;
+    }
+
+    for (var index = 0; index < request.uri.pathSegments.length; index++) {
+      if (route.pathSegments.values.toList()[index] is RegExp) {
+        if (!route.pathSegments.values.toList()[index]
+            .hasMatch(request.uri.pathSegments[index])) {
+          return false;
+        }
+      } else if (route.pathSegments.values.toList()[index] != request.uri.pathSegments[index]) {
+        return false;
       }
     }
 
-    return false;
+    return true;
   }
 
   var matchRoute = routeList.where((route) => _isMatchRoute(route)).toList();
