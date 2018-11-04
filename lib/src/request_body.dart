@@ -8,7 +8,9 @@ class CallBackData {
   dynamic body;
   dynamic pathVar;
 
-  CallBackData(this.body, this.pathVar);
+  List<dynamic> pathVarList;
+
+  CallBackData({this.body, this.pathVar,this.pathVarList});
   Future<bool> bodyParse(contentType) async {
     bool isSuccess = true;
     try {

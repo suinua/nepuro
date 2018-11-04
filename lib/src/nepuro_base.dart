@@ -24,7 +24,6 @@ class Nepuro {
       final List<Route> routeList = getRouteList();
       //routeListのなかからpath,methodが一致する関数のみ取得
       final Route route = await getMatchRoute(request, routeList);
-
       //routeが空かNullなら　404を返す
       if (route == null) {
         Response.notFound("not found").send(response);
@@ -34,12 +33,13 @@ class Nepuro {
       }
 
       //ライブラリの利用者に返すデータ
-      CallBackData callBackData = CallBackData(request, null);
+      CallBackData callBackData = CallBackData(body:request);
 
       //ライブラリの利用者がpathデータを要求していたら
       if (route.isCallPathVar) {
-        callBackData.pathVar = toPathVarType(route.method, request.uri.pathSegments.last);
+        callBackData.pathVar = getPathVar(route.method, request.uri.pathSegments.last);
       }
+      print(getPathVarList(request.uri.pathSegments,route));
 
       //ライブラリの利用者がbodyデータを要求していなければ
       if (!route.isCallBody) {
