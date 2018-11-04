@@ -37,10 +37,8 @@ class Nepuro {
 
       //ライブラリの利用者がpathデータを要求していたら
       if (route.isCallPathVar) {
-        callBackData.pathVar = getPathVar(route.method, request.uri.pathSegments.last);
+        callBackData.pathVarList = getPathVarList(request.uri.pathSegments,route);
       }
-      print(getPathVarList(request.uri.pathSegments,route));
-
       //ライブラリの利用者がbodyデータを要求していなければ
       if (!route.isCallBody) {
         route.sendResponse(callBackData, response);

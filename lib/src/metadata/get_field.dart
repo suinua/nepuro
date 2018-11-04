@@ -5,15 +5,11 @@ List<Map> getMethodFieldNames(Type type,MethodMirror method){
   List<Map> fieldNameList = new List();
 
   method.parameters.forEach((parameter) {
-      var name = parameter
-          .toString()
-          .replaceAll("ParameterMirror on ", "")
-          .replaceAll("\'", "");
+      var name = parameter.metadata.first.reflectee.pathVarName;
       bool isRequest = parameter.metadata.isEmpty ? false : parameter.metadata.first.reflectee.runtimeType == type;
       String requestType = isRequest ? parameter.metadata.first.reflectee.type : null;
       fieldNameList.add({"name":name,"isRequest":isRequest,"requestType":requestType});
   });
-
   return fieldNameList;
 }
 

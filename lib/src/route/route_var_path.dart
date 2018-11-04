@@ -2,11 +2,12 @@ import 'dart:mirrors';
 
 import 'package:nepuro/src/route/route.dart';
 
-Map<String,dynamic> getPathVarList(List requestPathSegment, Route route) {
-  Map<String,dynamic> result = new Map();
+Map<String, dynamic> getPathVarList(List requestPathSegment, Route route) {
+  Map<String, dynamic> result = new Map();
   for (var index = 0; index < route.pathSegments.keys.length; index++) {
-    if (route.pathSegments.keys.toList()[index] != "normal"){
-      result[route.pathSegments.keys.toList()[index]] = requestPathSegment[index];
+    if (!RegExp(r"normal").hasMatch(route.pathSegments.keys.toList()[index])) {
+      result[route.pathSegments.keys.toList()[index]] =
+          requestPathSegment[index];
     }
   }
   return result;
@@ -18,17 +19,22 @@ List<ParameterMirror> getPathVarTypeList(MethodMirror method) {
       .toList();
 }
 
-dynamic getPathVar(MethodMirror method, dynamic path) {
-  Type pathType = getPathVarTypeList(method).first.type.reflectedType;
-  switch (pathType) {
-    case String:
-      return path.toString();
-      break;
-    case int:
-      return int.parse(path);
-      break;
-    default:
-      //例外処理で「Stringかintのみ対応しています」
-      return path;
+Map<String, dynamic> toPathVarType(MethodMirror method, Map<String, dynamic> pathSegments) {
+  Map<String, dynamic> result = new Map();
+  for (var pathVarType in getPathVarTypeList(method)) {
+    String pathVarName = pathVarType.metadata.first.reflectee.pathVarName;
+    Type pathType = pathVarType.type.reflectedType;
+    switch (pathType) {
+      case String:
+        result[pathVarName] = pathSegments[pathVarName].toString();
+        break;
+      case int:
+        result[pathVarName] = int.parse(pathSegments[pathVarName]);
+        break;
+      default:
+        //例外処理で「Stringかintのみ対応しています」
+        return result;
+    }
   }
+  return result;
 }

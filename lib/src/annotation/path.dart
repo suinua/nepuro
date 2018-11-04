@@ -47,14 +47,13 @@ String getHttpMethod(MethodMirror method) {
 Map<String,dynamic> pathToSegments(String path) {
   List<dynamic> tempPathSegments = path.replaceFirst("/", "").split("/");
   Map<String,dynamic> pathSegments = new Map();
-
   for (var index = 0; index < tempPathSegments.length; index++) {
     //正規表現
     if (RegExp(r"r\[(.*)\:(.*)\]").hasMatch(tempPathSegments[index])) {
       //パス変数名 : 正規表現
       pathSegments[tempPathSegments[index]
-              .replaceAll(RegExp(r"r\[(.*)"), "")
-              .replaceAll(":]", "")] =
+              .replaceAll(RegExp(r"r\[(.*):"), "")
+              .replaceAll("]", "")] =
           RegExp(tempPathSegments[index]
               .replaceAll("r[", "")
               .replaceAll(RegExp(r":(.*)\]"), ""));
@@ -68,7 +67,7 @@ Map<String,dynamic> pathToSegments(String path) {
 
       //ただのパス
     } else {
-      pathSegments["normal"] = tempPathSegments[index];
+      pathSegments["normal $index"] = tempPathSegments[index];
     }
   }
   return pathSegments;
