@@ -19,9 +19,12 @@ List<Map> userList = [
   {"id": 2, "name": "Kenta", "age": 16}
 ];
 
-@Path.get("/User/r[/d:id]/name")
-getName(@Call.path("id") int id) {
-  return Response.ok(userList.where((user) => user["name"] == id).first["name"])..json();
+@Path.get(r"/User/r[\d:id]/[:parameter]")
+getName(@Call.path("id") int userId,@Call.path("lenght") int height) {
+  print(userId);
+  print(height);
+  return Response.ok(userList.where((user) => user["id"] == userId))
+    ..text();
 }
 
 void main() {
@@ -30,13 +33,10 @@ void main() {
   group("path test", () {
     test("get name", () async {
       var body;
-      await http.get("http://localhost:8080/User/1/name").then((response) {
-        body = jsonDecode(response.body);
+      await http.get("http://localhost:8080/User/1/name/5").then((response) {
+        body = response.body;
       });
-      expect(body, [
-        "Yuuta"
-      ]);
+      print(body);
     });
-
   });
 }

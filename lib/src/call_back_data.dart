@@ -6,9 +6,9 @@ import 'package:nepuro/src/route/route_body.dart';
 
 class CallBackData {
   dynamic body;
-  Map<String,dynamic> pathVarList;
+  Map<String, dynamic> pathVarList;
 
-  CallBackData({this.body,this.pathVarList});
+  CallBackData({this.body, this.pathVarList});
   Future<bool> bodyParse(contentType) async {
     bool isSuccess = true;
     try {
@@ -36,20 +36,23 @@ class CallBackData {
     List<String> fieldNemeList = getClassFieldNames(bodyType);
     List arguments = _sortFromList(fieldNemeList, this.body).values.toList();
 
-    this.body = bodyType.newInstance(bodyType.owner.simpleName, arguments).reflectee;
+    this.body =
+        bodyType.newInstance(bodyType.owner.simpleName, arguments).reflectee;
   }
 
-  List toMethodField(List<Map> methodFieldList){
-  List result = new List();
-  for (Map methodFiel in methodFieldList) {
-    if (methodFiel["isRequest"]) {
-      result.add(methodFiel["requestType"] == "body" ? this.body : this.pathVarList[methodFiel["name"]]);
-    } else {
-      result.add(null);
+  List toMethodField(List<Map> methodFieldList) {
+    List result = new List();
+    for (Map methodFiel in methodFieldList) {
+      if (methodFiel["isCallAnnotationWith"]) {
+        result.add(methodFiel["callDataType"] == "body"
+            ? this.body
+            : this.pathVarList[methodFiel["name"]]);
+      } else {
+        result.add(null);
+      }
     }
+    return result;
   }
-  return result;
-}
 }
 
 Map _sortFromList(List keyList, Map map) {
