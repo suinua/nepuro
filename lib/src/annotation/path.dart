@@ -15,15 +15,6 @@ class Path {
   const Path.delete(this.routePath) : this.httpMethod = "DELETE";
 }
 
-List<MethodMirror> getPathMethodList() {
-  List<MethodMirror> pathMethodList = new List();
-  List<MethodMirror> annotationDataList = getMethodOf(Path);
-  for (MethodMirror method in annotationDataList) {
-    pathMethodList.add(method);
-  }
-  return pathMethodList;
-}
-
 String getRoutePath(MethodMirror method) {
   String routePath;
   method.metadata.forEach((metadata) {

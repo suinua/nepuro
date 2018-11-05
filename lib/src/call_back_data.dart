@@ -6,9 +6,11 @@ import 'package:nepuro/src/route/route_body.dart';
 
 class CallBackData {
   dynamic body;
-  Map<String, dynamic> pathVarList;
+  Map<String, dynamic> pathVarValues;
 
-  CallBackData({this.body, this.pathVarList});
+  CallBackData({this.body, this.pathVarValues});
+  setPathVarValues(){
+  }
   Future<bool> bodyParse(contentType) async {
     bool isSuccess = true;
     try {
@@ -46,7 +48,7 @@ class CallBackData {
       if (methodFiel["isCallAnnotationWith"]) {
         result.add(methodFiel["callDataType"] == "body"
             ? this.body
-            : this.pathVarList[methodFiel["name"]]);
+            : this.pathVarValues[methodFiel["name"]]);
       } else {
         result.add(null);
       }

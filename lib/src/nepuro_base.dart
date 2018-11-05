@@ -20,7 +20,7 @@ class Nepuro {
 
       HttpResponse response = request.response;
 
-      //@Routeのつく関数、メタデータをすべて取得
+      //@Pathのつく関数データをすべて取得
       final List<Route> routeList = getRouteList();
       //routeListのなかからpath,methodが一致する関数のみ取得
       final Route route = await getMatchRoute(request, routeList);
@@ -33,11 +33,12 @@ class Nepuro {
       }
 
       //ライブラリの利用者に返すデータ
-      CallBackData callBackData = CallBackData(body:request);
+      CallBackData callBackData = CallBackData(body: request);
 
       //ライブラリの利用者がpathデータを要求していたら
       if (route.isCallPathVar) {
-        callBackData.pathVarList = getPathVarList(request.uri.pathSegments,route);
+        callBackData.pathVarValues = toPathVarType(route.method,
+            getPathVarValues(route.pathSegments, request.uri.pathSegments));
       }
       //ライブラリの利用者がbodyデータを要求していなければ
       if (!route.isCallBody) {
@@ -47,15 +48,7 @@ class Nepuro {
         return response.statusCode;
       }
 
-      //ライブラリ利用者がbodyに設定しているクラスがRequestBodyTypeを実装しているか
-      bool isBodyObject = false;
-      getBodyType(route.method).metadata.forEach((metadata){
-        if (metadata.reflectee is BodyObject){
-          isBodyObject = true;
-        }
-      });
-
-      //ライブラリ利用者がbodyに設定した型とリクエストの型が一致するかどうか
+      //リクエストのコンテンツタイプ
       String requestContentType = request.headers.contentType.value;
 
       //ContentTypeがtextならそのまま代入して返す
@@ -74,6 +67,14 @@ class Nepuro {
         }
       }
 
+      //ライブラリ利用者がbodyに設定しているクラスがRequestBodyTypeを実装しているか
+      bool isBodyObject = false;
+      getBodyType(route.method).metadata.forEach((metadata) {
+        if (metadata.reflectee is BodyObject) {
+          isBodyObject = true;
+        }
+      });
+
       //@BodyObjectのついたクラスでない && リクエストのコンテンツタイプがjsonでない
       if (!(isBodyObject && requestContentType == ContentType.json.value)) {
         Response.badRequest("bad request").send(response);
@@ -83,7 +84,9 @@ class Nepuro {
       }
 
       bool isSuccess;
-      await callBackData.bodyParse(request.headers.contentType.value).then((result) {
+      await callBackData
+          .bodyParse(request.headers.contentType.value)
+          .then((result) {
         isSuccess = result;
       });
       if (!isSuccess) {

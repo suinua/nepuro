@@ -2,11 +2,11 @@ import 'dart:mirrors';
 
 import 'package:nepuro/src/route/route.dart';
 
-Map<String, dynamic> getPathVarList(List requestPathSegment, Route route) {
+Map<String, dynamic> getPathVarValues(Map<String, dynamic> pathSegments,List requestPathSegment) {
   Map<String, dynamic> result = new Map();
-  for (var index = 0; index < route.pathSegments.keys.length; index++) {
-    if (!RegExp(r"normal").hasMatch(route.pathSegments.keys.toList()[index])) {
-      result[route.pathSegments.keys.toList()[index]] =
+  for (var index = 0; index < pathSegments.keys.length; index++) {
+    if (!RegExp(r"normal").hasMatch(pathSegments.keys.toList()[index])) {
+      result[pathSegments.keys.toList()[index]] =
           requestPathSegment[index];
     }
   }
@@ -19,7 +19,8 @@ List<ParameterMirror> getPathVarTypeList(MethodMirror method) {
       .toList();
 }
 
-Future<Map<String, dynamic>> toPathVarType(MethodMirror method, Map<String, dynamic> pathSegments) async {
+Map<String, dynamic> toPathVarType(
+    MethodMirror method, Map<String, dynamic> pathSegments) {
   Map<String, dynamic> result = new Map();
   for (var pathVarType in getPathVarTypeList(method)) {
     String pathVarName = pathVarType.metadata.first.reflectee.pathVarName;
@@ -32,8 +33,7 @@ Future<Map<String, dynamic>> toPathVarType(MethodMirror method, Map<String, dyna
         result[pathVarName] = int.parse(pathSegments[pathVarName]);
         break;
       default:
-        //例外処理で「Stringかintのみ対応しています」
-        return result;
+        result[pathVarName] = pathSegments[pathVarName].toString();
     }
   }
   return result;
