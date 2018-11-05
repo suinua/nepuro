@@ -1,16 +1,16 @@
 import 'dart:mirrors';
 
 
-List<Map> getMethodFieldNames(Type type,MethodMirror method){
-  List<Map> fieldNameList = new List();
+List<Map> getMethodField(Type type,MethodMirror method){
+  List<Map> fieldList = new List();
 
   method.parameters.forEach((parameter) {
       var name = parameter.metadata.first.reflectee.pathVarName;
-      bool isRequest = parameter.metadata.isEmpty ? false : parameter.metadata.first.reflectee.runtimeType == type;
-      String requestType = isRequest ? parameter.metadata.first.reflectee.type : null;
-      fieldNameList.add({"name":name,"isRequest":isRequest,"requestType":requestType});
+      bool isCallAnnotationWith = parameter.metadata.isEmpty ? false : parameter.metadata.first.reflectee.runtimeType == type;
+      String callDataType = isCallAnnotationWith ? parameter.metadata.first.reflectee.type : null;
+      fieldList.add({"name":name,"isCallAnnotationWith":isCallAnnotationWith,"callDataType":callDataType});
   });
-  return fieldNameList;
+  return fieldList;
 }
 
 List<String> getClassFieldNames(ClassMirror type) {

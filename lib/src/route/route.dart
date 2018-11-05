@@ -2,7 +2,7 @@ import 'dart:mirrors';
 import 'dart:io';
 
 import 'package:nepuro/src/annotation/call.dart';
-import 'package:nepuro/src/request_body.dart';
+import 'package:nepuro/src/call_back_data.dart';
 import 'package:nepuro/src/route/route_body.dart';
 import 'package:nepuro/src/metadata/get_field.dart';
 import 'package:nepuro/src/annotation/required_field.dart';
@@ -62,7 +62,7 @@ class Route implements Path, RequiredField {
   sendResponse(CallBackData callBackData, HttpResponse response) {
     LibraryMirror owner = method.owner;
     var routeFunc = owner.invoke(method.simpleName,
-        callBackData.toMethodField(getMethodFieldNames(Call, method)));
+        callBackData.toMethodField(getMethodField(Call, method)));
 
     routeFunc.reflectee.send(response);
   }

@@ -19,7 +19,7 @@ List<ParameterMirror> getPathVarTypeList(MethodMirror method) {
       .toList();
 }
 
-Map<String, dynamic> toPathVarType(MethodMirror method, Map<String, dynamic> pathSegments) {
+Future<Map<String, dynamic>> toPathVarType(MethodMirror method, Map<String, dynamic> pathSegments) async {
   Map<String, dynamic> result = new Map();
   for (var pathVarType in getPathVarTypeList(method)) {
     String pathVarName = pathVarType.metadata.first.reflectee.pathVarName;
