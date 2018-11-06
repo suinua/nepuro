@@ -110,7 +110,7 @@ void main() {
       await http.get("http://localhost:8080/Plus/a/b").then((response) {
         body = response.body;
       });
-      expect(body, "not found");
+      expect(body, "Not Found");
     });
   });
 }

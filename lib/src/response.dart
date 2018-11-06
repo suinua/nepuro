@@ -28,27 +28,27 @@ class Response {
 
   Response.ok(this.body)
       : this.contentType = ContentType.text,
-        this.status = 200;
+        this.status = HttpStatus.ok;
 
   Response.created(this.body)
       : this.contentType = ContentType.text,
-        this.status = 201;
+        this.status = HttpStatus.created;
 
   Response.movedPermanently(this.body)
       : this.contentType = ContentType.text,
-        this.status = 301;
+        this.status = HttpStatus.movedPermanently;
 
   Response.notModified(this.body)
       : this.contentType = ContentType.text,
-        this.status = 302;
+        this.status = HttpStatus.notModified;
 
   Response.badRequest(this.body)
       : this.contentType = ContentType.text,
-        this.status = 400;
+        this.status = HttpStatus.badRequest;
 
   Response.unauthorixed(this.body)
       : this.contentType = ContentType.text,
-        this.status = 401;
+        this.status = HttpStatus.unauthorized;
 
   Response.forbidden(this.body)
       : this.contentType = ContentType.text,
