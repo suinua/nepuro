@@ -1,7 +1,5 @@
 import 'dart:mirrors';
 
-import 'package:nepuro/src/metadata/get_method.dart';
-
 class Path {
   final String routePath;
   final String httpMethod;
@@ -13,15 +11,6 @@ class Path {
   const Path.put(this.routePath) : this.httpMethod = "PUT";
 
   const Path.delete(this.routePath) : this.httpMethod = "DELETE";
-}
-
-List<MethodMirror> getPathMethodList() {
-  List<MethodMirror> pathMethodList = new List();
-  List<MethodMirror> annotationDataList = getMethodOf(Path);
-  for (MethodMirror method in annotationDataList) {
-    pathMethodList.add(method);
-  }
-  return pathMethodList;
 }
 
 String getRoutePath(MethodMirror method) {

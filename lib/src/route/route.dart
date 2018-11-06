@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:nepuro/src/annotation/call.dart';
 import 'package:nepuro/src/call_back_data.dart';
+import 'package:nepuro/src/metadata/get_method.dart';
 import 'package:nepuro/src/route/route_body.dart';
 import 'package:nepuro/src/metadata/get_field.dart';
 import 'package:nepuro/src/annotation/required_field.dart';
@@ -70,7 +71,7 @@ class Route implements Path, RequiredField {
 
 List<Route> getRouteList() {
   List<Route> routeList = new List();
-  List<MethodMirror> pathMethodList = getPathMethodList();
+  List<MethodMirror> pathMethodList = getMethodOf(Path);
   for (MethodMirror pathMethod in pathMethodList) {
     routeList.add(Route(pathMethod));
   }
