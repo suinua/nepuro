@@ -14,8 +14,6 @@ class Route implements Path, RequiredField {
   String routePath;
   Map<String,dynamic> pathSegments;
 
-  bool isPathVar;
-
   String httpMethod;
 
   Map<String, Type> requiredField;
@@ -29,7 +27,6 @@ class Route implements Path, RequiredField {
   Route(this.method)
       : this.routePath = getRoutePath(method),
         this.pathSegments = pathToSegments(getRoutePath(method)),
-        this.isPathVar = isContainsPathVar(getRoutePath(method)),
         this.httpMethod = getHttpMethod(method),
         this.requiredField = getRequiredField(method),
         this.isCallBody = getBodyTypeList(method).isNotEmpty,

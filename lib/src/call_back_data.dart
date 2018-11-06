@@ -9,8 +9,6 @@ class CallBackData {
   Map<String, dynamic> pathVarValues;
 
   CallBackData({this.body, this.pathVarValues});
-  setPathVarValues(){
-  }
   Future<bool> bodyParse(contentType) async {
     bool isSuccess = true;
     try {
@@ -36,6 +34,15 @@ class CallBackData {
   toSetBodyType(MethodMirror method) {
     ClassMirror bodyType = getBodyTypeList(method).first.type;
     List<String> fieldNemeList = getClassFieldNames(bodyType);
+
+    Map _sortFromList(List keyList, Map map) {
+      Map result = new Map();
+      for (String key in keyList) {
+        result[key] = map[key];
+      }
+      return result;
+    }
+
     List arguments = _sortFromList(fieldNemeList, this.body).values.toList();
 
     this.body =
@@ -55,12 +62,4 @@ class CallBackData {
     }
     return result;
   }
-}
-
-Map _sortFromList(List keyList, Map map) {
-  Map result = new Map();
-  for (String key in keyList) {
-    result[key] = map[key];
-  }
-  return result;
 }

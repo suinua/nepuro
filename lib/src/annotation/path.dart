@@ -61,7 +61,3 @@ Map<String,dynamic> pathToSegments(String path) {
   }
   return pathSegments;
 }
-
-bool isContainsPathVar(String routePath) {
-  return RegExp("\[\:(.*)\]").hasMatch(routePath);
-}

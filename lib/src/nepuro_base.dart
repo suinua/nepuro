@@ -25,7 +25,7 @@ class Nepuro {
       final Route route = await getMatchRoute(request, routeList);
       //routeが空かNullなら　404を返す
       if (route == null) {
-        Response.notFound("not found").send(response);
+        Response.notFound("Not Found").send(response);
         print("status: 404");
 
         return 404;
@@ -39,6 +39,7 @@ class Nepuro {
         callBackData.pathVarValues = toPathVarType(route.method,
             getPathVarValues(route.pathSegments, request.uri.pathSegments));
       }
+      
       //ライブラリの利用者がbodyデータを要求していなければ
       if (!route.isCallBody) {
         route.sendResponse(callBackData, response);
@@ -59,7 +60,7 @@ class Nepuro {
           isSuccess = result;
         });
         if (!isSuccess) {
-          Response.badRequest("bad request").send(response);
+          Response.badRequest("Bad Request").send(response);
 
           print("status: 400");
           return 404;
@@ -76,7 +77,7 @@ class Nepuro {
 
       //@BodyObjectのついたクラスでない && リクエストのコンテンツタイプがjsonでない
       if (!(isBodyObject && requestContentType == ContentType.json.value)) {
-        Response.badRequest("bad request").send(response);
+        Response.badRequest("Bad Request").send(response);
 
         print("status: 400");
         return 400;
@@ -89,7 +90,7 @@ class Nepuro {
         isSuccess = result;
       });
       if (!isSuccess) {
-        Response.badRequest("bad request").send(response);
+        Response.badRequest("Bad Request").send(response);
 
         print("status: 400");
         return 404;
@@ -108,7 +109,7 @@ class Nepuro {
       }
 
       if (isBadRequest()) {
-        Response.badRequest("bad request").send(response);
+        Response.badRequest("Bad Request").send(response);
         print("status: 400");
         return 400;
       }
@@ -117,7 +118,7 @@ class Nepuro {
 
       route.sendResponse(callBackData, response);
       print("status: ${response.statusCode}");
-      return 200;
+      return response.statusCode;
     });
   }
 }
