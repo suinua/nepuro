@@ -1,7 +1,5 @@
 import 'dart:mirrors';
 
-import 'package:nepuro/src/route/route.dart';
-
 Map<String, dynamic> getPathVarValues(Map<String, dynamic> pathSegments,List requestPathSegment) {
   Map<String, dynamic> result = new Map();
   for (var index = 0; index < pathSegments.keys.length; index++) {
