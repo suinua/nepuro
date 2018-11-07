@@ -6,7 +6,7 @@ import 'package:nepuro/src/call_back_data/call_back_data.dart';
 import 'package:nepuro/src/response.dart';
 import 'package:nepuro/src/route/route.dart';
 import 'package:nepuro/src/route/route_body.dart';
-import 'package:nepuro/src/route/route_var_path.dart';
+import 'package:nepuro/src/route/route_path_parameter.dart';
 
 class Nepuro {
   server({String ip = "127.0.0.1", int port = 8080}) async {
@@ -37,7 +37,7 @@ class Nepuro {
       ..body = request;
 
       //ライブラリの利用者がpathデータを要求していたら
-      if (route.isCallPathVar) {
+      if (route.isCallPathParameter) {
         List<ParameterMirror> pathParameterTypes = getPathParameterTypes(route.method);
         callBackData.pathParameter.setType(pathParameterTypes,
             getPathParameter(route.pathSegments, request.uri.pathSegments));

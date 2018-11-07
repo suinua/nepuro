@@ -8,7 +8,7 @@ import 'package:nepuro/src/route/route_body.dart';
 import 'package:nepuro/src/metadata/get_field.dart';
 import 'package:nepuro/src/annotation/required_field.dart';
 import 'package:nepuro/src/annotation/path.dart';
-import 'package:nepuro/src/route/route_var_path.dart';
+import 'package:nepuro/src/route/route_path_parameter.dart';
 
 class Route implements Path, RequiredField {
   String routePath;
@@ -19,7 +19,7 @@ class Route implements Path, RequiredField {
   Map<String, Type> requiredField;
 
   bool isCallBody;
-  bool isCallPathVar;
+  bool isCallPathParameter;
   String contentType;
 
   MethodMirror method;
@@ -30,7 +30,7 @@ class Route implements Path, RequiredField {
         this.httpMethod = getHttpMethod(method),
         this.requiredField = getRequiredField(method),
         this.isCallBody = getBodyTypeList(method).isNotEmpty,
-        this.isCallPathVar = getPathParameterTypes(method).isNotEmpty,
+        this.isCallPathParameter = getPathParameterTypes(method).isNotEmpty,
         this.contentType = getContentType(method);
 
   bool isCorrectBody(Map requestBody) {

@@ -5,7 +5,7 @@ List<Map> getMethodField(Type type,MethodMirror method){
   List<Map> fieldList = new List();
 
   method.parameters.forEach((parameter) {
-      var name = parameter.metadata.first.reflectee.pathVarName;
+      var name = parameter.metadata.first.reflectee.pathParameterName;
       bool isCallAnnotationWith = parameter.metadata.isEmpty ? false : parameter.metadata.first.reflectee.runtimeType == type;
       String callDataType = isCallAnnotationWith ? parameter.metadata.first.reflectee.type : null;
       fieldList.add({"name":name,"isCallAnnotationWith":isCallAnnotationWith,"callDataType":callDataType});
