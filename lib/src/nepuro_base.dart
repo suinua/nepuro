@@ -1,7 +1,8 @@
 import 'dart:io';
+import 'dart:mirrors';
 
 import 'package:nepuro/src/annotation/body_object.dart';
-import 'package:nepuro/src/call_back_data.dart';
+import 'package:nepuro/src/call_back_data/call_back_data.dart';
 import 'package:nepuro/src/response.dart';
 import 'package:nepuro/src/route/route.dart';
 import 'package:nepuro/src/route/route_body.dart';
@@ -32,14 +33,16 @@ class Nepuro {
       }
 
       //ライブラリの利用者に返すデータ
-      CallBackData callBackData = CallBackData(body: request);
+      CallBackData callBackData = CallBackData()
+      ..body = request;
 
       //ライブラリの利用者がpathデータを要求していたら
       if (route.isCallPathVar) {
-        callBackData.pathVarValues = toPathVarType(route.method,
-            getPathVarValues(route.pathSegments, request.uri.pathSegments));
+        List<ParameterMirror> pathParameterTypes = getPathParameterTypes(route.method);
+        callBackData.pathParameter.setType(pathParameterTypes,
+            getPathParameter(route.pathSegments, request.uri.pathSegments));
       }
-      
+
       //ライブラリの利用者がbodyデータを要求していなければ
       if (!route.isCallBody) {
         route.sendResponse(callBackData, response);
@@ -55,7 +58,7 @@ class Nepuro {
       if (route.contentType == requestContentType) {
         bool isSuccess;
         await callBackData
-            .bodyParse(request.headers.contentType.value)
+            .body.transform(request.headers.contentType.value)
             .then((result) {
           isSuccess = result;
         });
@@ -85,7 +88,7 @@ class Nepuro {
 
       bool isSuccess;
       await callBackData
-          .bodyParse(request.headers.contentType.value)
+          .body.transform(request.headers.contentType.value)
           .then((result) {
         isSuccess = result;
       });
@@ -101,10 +104,10 @@ class Nepuro {
 
         bool isBodyNotCorrect = route.requiredField.isEmpty
             ? false
-            : !route.isCorrectBody(callBackData.body);
+            : !route.isCorrectBody(callBackData.body.value);
 
         return route.requiredField.isEmpty &&
-                isContainNull(callBackData.body.asMap()) ||
+                isContainNull(callBackData.body.value.asMap()) ||
             isBodyNotCorrect;
       }
 
@@ -114,7 +117,7 @@ class Nepuro {
         return 400;
       }
 
-      callBackData.toSetBodyType(route.method);
+      callBackData.body.setType(route.method);
 
       route.sendResponse(callBackData, response);
       print("status: ${response.statusCode}");
