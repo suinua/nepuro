@@ -56,13 +56,14 @@ class Nepuro {
 
       //ContentTypeがtextならそのまま代入して返す
       if (route.contentType == requestContentType) {
-        bool isSuccess;
+        bool isFailure;
         await callBackData
             .body.transform(request.headers.contentType.value)
             .then((result) {
-          isSuccess = result;
+          isFailure = result;
         });
-        if (!isSuccess) {
+        
+        if (isFailure) {
           Response.badRequest("Bad Request").send(response);
 
           print("status: 400");
@@ -86,13 +87,13 @@ class Nepuro {
         return 400;
       }
 
-      bool isSuccess;
+      bool isFailure;
       await callBackData
           .body.transform(request.headers.contentType.value)
           .then((result) {
-        isSuccess = result;
+        isFailure = result;
       });
-      if (!isSuccess) {
+      if (isFailure) {
         Response.badRequest("Bad Request").send(response);
 
         print("status: 400");

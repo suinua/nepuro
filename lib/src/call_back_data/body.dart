@@ -9,7 +9,7 @@ class CallBackBody {
 
   CallBackBody();
   Future<bool> transform(String contentType) async {
-    bool isSuccess = true;
+    bool isFailure = false;
     try {
       switch (contentType) {
         case "text/plain":
@@ -21,13 +21,13 @@ class CallBackBody {
           this.value = jsonDecode(content) as Map;
           break;
         default:
-          isSuccess = false;
+          isFailure = true;
           break;
       }
     } catch (e) {
-      isSuccess = false;
+      isFailure= true;
     }
-    return isSuccess;
+    return isFailure;
   }
 
   setType(MethodMirror method) {
